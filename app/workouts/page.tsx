@@ -6,6 +6,25 @@ import Image from 'next/image'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 import { supabase } from '@/lib/supabase'
 import { User, Session, ExerciseSet } from '@/lib/types'
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Avatar,
+  AppBar,
+  Toolbar,
+  Chip,
+  Stack,
+  Paper,
+} from '@mui/material'
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material'
 
 // Helper function to check if avatar is a valid image path
 const isValidImagePath = (src: string): boolean => {
@@ -398,603 +417,1071 @@ export default function WorkoutsPage() {
   if (!currentUser || !mounted) return null
 
   return (
-    <div className="min-h-screen bg-md-background">
-      <header className="bg-md-surface md-elevation-1 border-b border-md-outline/20 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-sm text-md-on-surface-variant hover:text-md-on-surface font-medium md-transition"
-            >
-              ← Back to Dashboard
-            </button>
-            <h1 className="text-2xl font-bold text-md-on-surface">Workout Tracker</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 relative rounded-full overflow-hidden md-elevation-1">
-                <Image 
-                  src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR} 
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar 
+        position="sticky" 
+        elevation={1}
+        sx={{ 
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Button
+                onClick={() => router.push('/dashboard')}
+                sx={{ 
+                  color: 'text.secondary',
+                  '&:hover': { color: 'text.primary' },
+                }}
+              >
+                ← Back to Dashboard
+              </Button>
+              <Typography variant="h5" fontWeight="bold" color="text.primary">
+                Workout Tracker
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Avatar 
+                  src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR}
                   alt={currentUser.name}
-                  fill
-                  sizes="32px"
-                  className="object-cover"
+                  sx={{ width: 32, height: 32 }}
                 />
-              </div>
-              <span className="text-sm font-medium text-md-on-surface">{currentUser.name}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-md-on-surface-variant hover:text-md-on-surface md-transition"
-            >
-              Switch Profile
-            </button>
-          </div>
-        </div>
-      </header>
+                <Typography variant="body2" fontWeight="medium" color="text.primary">
+                  {currentUser.name}
+                </Typography>
+              </Stack>
+              <Button
+                onClick={handleLogout}
+                sx={{ 
+                  color: 'text.secondary',
+                  '&:hover': { color: 'text.primary' },
+                }}
+              >
+                Switch Profile
+              </Button>
+            </Stack>
+          </Toolbar>
+        </Container>
+      </AppBar>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-md-surface rounded-md-lg md-elevation-1 p-6">
-            <h3 className="text-sm text-md-on-surface-variant mb-1">Days in Last 30</h3>
-            <p className="text-4xl font-bold text-md-primary">{getGymDaysLast30()}</p>
-          </div>
-          <div className="bg-md-surface rounded-md-lg md-elevation-1 p-6">
-            <h3 className="text-sm text-md-on-surface-variant mb-1">Total Workouts</h3>
-            <p className="text-4xl font-bold text-md-on-surface">
-              {sessions.filter(s => s.participants?.some((p: any) => p.user_id === currentUser?.id)).length}
-            </p>
-          </div>
-          <div className="bg-md-surface rounded-md-lg md-elevation-1 p-6">
-            <h3 className="text-sm text-md-on-surface-variant mb-1">Exercises Tracked</h3>
-            <p className="text-4xl font-bold text-gray-900">{allExercises.length}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm text-gray-600 mb-1">This Month</h3>
-            <p className="text-4xl font-bold text-gray-900">
-              {sessions.filter(s => {
-                const sessionDate = new Date(s.date)
-                const now = new Date()
-                return sessionDate.getMonth() === now.getMonth() && 
-                       sessionDate.getFullYear() === now.getFullYear() &&
-                       s.participants?.some((p: any) => p.user_id === currentUser?.id)
-              }).length}
-            </p>
-          </div>
-        </div>
+        <Box 
+          sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: 2,
+            mb: 4,
+          }}
+        >
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Days in Last 30
+              </Typography>
+              <Typography variant="h3" fontWeight="bold" color="primary">
+                {getGymDaysLast30()}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Total Workouts
+              </Typography>
+              <Typography variant="h3" fontWeight="bold" color="text.primary">
+                {sessions.filter(s => s.participants?.some((p: any) => p.user_id === currentUser?.id)).length}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Exercises Tracked
+              </Typography>
+              <Typography variant="h3" fontWeight="bold" color="text.primary">
+                {allExercises.length}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                This Month
+              </Typography>
+              <Typography variant="h3" fontWeight="bold" color="text.primary">
+                {sessions.filter(s => {
+                  const sessionDate = new Date(s.date)
+                  const now = new Date()
+                  return sessionDate.getMonth() === now.getMonth() && 
+                         sessionDate.getFullYear() === now.getFullYear() &&
+                         s.participants?.some((p: any) => p.user_id === currentUser?.id)
+                }).length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
 
         {/* Achievement Badges */}
         {achievements.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🏆 Achievements</h2>
-            <div className="flex flex-wrap gap-3">
-              {achievements.map((achievement, idx) => (
-                <div 
-                  key={idx}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm ${
-                    achievement.color === 'orange' ? 'bg-orange-100 text-orange-700' :
-                    achievement.color === 'red' ? 'bg-red-100 text-red-700' :
-                    achievement.color === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
-                    achievement.color === 'purple' ? 'bg-purple-100 text-purple-700' :
-                    achievement.color === 'blue' ? 'bg-blue-100 text-blue-700' :
-                    'bg-green-100 text-green-700'
-                  }`}
-                >
-                  <span className="text-xl">{achievement.icon}</span>
-                  <span>{achievement.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card sx={{ mb: 4 }}>
+            <CardContent>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                🏆 Achievements
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" gap={1.5}>
+                {achievements.map((achievement, idx) => (
+                  <Chip
+                    key={idx}
+                    icon={<span style={{ fontSize: '1.25rem' }}>{achievement.icon}</span>}
+                    label={achievement.name}
+                    sx={{
+                      bgcolor: 
+                        achievement.color === 'orange' ? '#FFF4E6' :
+                        achievement.color === 'red' ? '#FFE5E5' :
+                        achievement.color === 'yellow' ? '#FFFBEB' :
+                        achievement.color === 'purple' ? '#F3E8FF' :
+                        achievement.color === 'blue' ? '#EBF5FF' :
+                        '#DCFCE7',
+                      color:
+                        achievement.color === 'orange' ? '#C2410C' :
+                        achievement.color === 'red' ? '#DC2626' :
+                        achievement.color === 'yellow' ? '#CA8A04' :
+                        achievement.color === 'purple' ? '#7C3AED' :
+                        achievement.color === 'blue' ? '#2563EB' :
+                        '#16A34A',
+                      fontWeight: 500,
+                      '& .MuiChip-icon': {
+                        ml: 1,
+                      },
+                    }}
+                  />
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
         )}
 
         {/* Body Part Heat Map & Exercise Balance */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Box 
+          sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+            gap: 3,
+            mb: 4,
+          }}
+        >
           {/* Body Part Heat Map */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">💪 Body Parts This Week</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {bodyPartHeatMap.map(part => {
-                const getHeatMapColor = (intensity: number) => {
-                  if (intensity === 0) return 'bg-gray-100 text-gray-400 border-gray-200'
-                  if (intensity < 0.33) return 'bg-yellow-100 text-yellow-700 border-yellow-300'
-                  if (intensity < 0.66) return 'bg-orange-100 text-orange-700 border-orange-300'
-                  return 'bg-red-100 text-red-700 border-red-300'
-                }
-                
-                return (
-                  <div
-                    key={part.name}
-                    className={`px-4 py-3 rounded-lg text-center font-medium transition-all border-2 ${getHeatMapColor(part.intensity)}`}
-                  >
-                    <div>{part.name}</div>
-                    {part.count > 0 && (
-                      <div className="text-xs mt-1 opacity-75">{part.count} exercise{part.count !== 1 ? 's' : ''}</div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-600">
-              <span>Less</span>
-              <div className="flex gap-1">
-                <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200"></div>
-                <div className="w-6 h-6 rounded bg-yellow-100 border border-yellow-300"></div>
-                <div className="w-6 h-6 rounded bg-orange-100 border border-orange-300"></div>
-                <div className="w-6 h-6 rounded bg-red-100 border border-red-300"></div>
-              </div>
-              <span>More</span>
-            </div>
-          </div>
+          <Card>
+            <CardContent>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                💪 Body Parts This Week
+              </Typography>
+              <Box 
+                sx={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 1.5,
+                }}
+              >
+                {bodyPartHeatMap.map(part => {
+                  const getHeatMapColor = (intensity: number) => {
+                    if (intensity === 0) return { bgcolor: '#F3F4F6', color: '#9CA3AF', border: '#E5E7EB' }
+                    if (intensity < 0.33) return { bgcolor: '#FEF3C7', color: '#B45309', border: '#FCD34D' }
+                    if (intensity < 0.66) return { bgcolor: '#FFEDD5', color: '#C2410C', border: '#FDBA74' }
+                    return { bgcolor: '#FEE2E2', color: '#DC2626', border: '#FCA5A5' }
+                  }
+                  
+                  const colors = getHeatMapColor(part.intensity)
+                  
+                  return (
+                    <Paper
+                      key={part.name}
+                      elevation={0}
+                      sx={{
+                        px: 2,
+                        py: 1.5,
+                        textAlign: 'center',
+                        fontWeight: 500,
+                        transition: 'all 0.2s',
+                        bgcolor: colors.bgcolor,
+                        color: colors.color,
+                        border: '2px solid',
+                        borderColor: colors.border,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight="medium">
+                        {part.name}
+                      </Typography>
+                      {part.count > 0 && (
+                        <Typography variant="caption" sx={{ opacity: 0.75, display: 'block', mt: 0.5 }}>
+                          {part.count} exercise{part.count !== 1 ? 's' : ''}
+                        </Typography>
+                      )}
+                    </Paper>
+                  )
+                })}
+              </Box>
+              <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mt: 2 }}>
+                <Typography variant="caption" color="text.secondary">Less</Typography>
+                <Stack direction="row" spacing={0.5}>
+                  <Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: '#F3F4F6', border: '1px solid #E5E7EB' }} />
+                  <Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: '#FEF3C7', border: '1px solid #FCD34D' }} />
+                  <Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: '#FFEDD5', border: '1px solid #FDBA74' }} />
+                  <Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: '#FEE2E2', border: '1px solid #FCA5A5' }} />
+                </Stack>
+                <Typography variant="caption" color="text.secondary">More</Typography>
+              </Stack>
+            </CardContent>
+          </Card>
 
           {/* Exercise Balance */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">⚖️ Exercise Balance</h2>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-indigo-700">Push</span>
-                  <span className="text-sm font-bold text-indigo-700">{exerciseBalance.percentages.Push}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-indigo-600 h-3 rounded-full transition-all" 
-                    style={{ width: `${exerciseBalance.percentages.Push}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-green-700">Pull</span>
-                  <span className="text-sm font-bold text-green-700">{exerciseBalance.percentages.Pull}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-green-600 h-3 rounded-full transition-all" 
-                    style={{ width: `${exerciseBalance.percentages.Pull}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-orange-700">Legs</span>
-                  <span className="text-sm font-bold text-orange-700">{exerciseBalance.percentages.Legs}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-orange-600 h-3 rounded-full transition-all" 
-                    style={{ width: `${exerciseBalance.percentages.Legs}%` }}
-                  />
-                </div>
-              </div>
-              {exerciseBalance.percentages.Other > 0 && (
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-700">Other</span>
-                    <span className="text-sm font-bold text-gray-700">{exerciseBalance.percentages.Other}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-gray-600 h-3 rounded-full transition-all" 
-                      style={{ width: `${exerciseBalance.percentages.Other}%` }}
+          <Card>
+            <CardContent>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                ⚖️ Exercise Balance
+              </Typography>
+              <Stack spacing={2}>
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                    <Typography variant="body2" fontWeight="medium" sx={{ color: '#6366F1' }}>
+                      Push
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold" sx={{ color: '#6366F1' }}>
+                      {exerciseBalance.percentages.Push}%
+                    </Typography>
+                  </Stack>
+                  <Box sx={{ width: '100%', bgcolor: '#E5E7EB', borderRadius: 999, height: 12 }}>
+                    <Box 
+                      sx={{ 
+                        bgcolor: '#6366F1', 
+                        height: 12, 
+                        borderRadius: 999,
+                        transition: 'width 0.3s',
+                        width: `${exerciseBalance.percentages.Push}%`,
+                      }}
                     />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+                  </Box>
+                </Box>
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                    <Typography variant="body2" fontWeight="medium" sx={{ color: '#10B981' }}>
+                      Pull
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold" sx={{ color: '#10B981' }}>
+                      {exerciseBalance.percentages.Pull}%
+                    </Typography>
+                  </Stack>
+                  <Box sx={{ width: '100%', bgcolor: '#E5E7EB', borderRadius: 999, height: 12 }}>
+                    <Box 
+                      sx={{ 
+                        bgcolor: '#10B981', 
+                        height: 12, 
+                        borderRadius: 999,
+                        transition: 'width 0.3s',
+                        width: `${exerciseBalance.percentages.Pull}%`,
+                      }}
+                    />
+                  </Box>
+                </Box>
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                    <Typography variant="body2" fontWeight="medium" sx={{ color: '#F59E0B' }}>
+                      Legs
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold" sx={{ color: '#F59E0B' }}>
+                      {exerciseBalance.percentages.Legs}%
+                    </Typography>
+                  </Stack>
+                  <Box sx={{ width: '100%', bgcolor: '#E5E7EB', borderRadius: 999, height: 12 }}>
+                    <Box 
+                      sx={{ 
+                        bgcolor: '#F59E0B', 
+                        height: 12, 
+                        borderRadius: 999,
+                        transition: 'width 0.3s',
+                        width: `${exerciseBalance.percentages.Legs}%`,
+                      }}
+                    />
+                  </Box>
+                </Box>
+                {exerciseBalance.percentages.Other > 0 && (
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                      <Typography variant="body2" fontWeight="medium" color="text.secondary">
+                        Other
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" color="text.secondary">
+                        {exerciseBalance.percentages.Other}%
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ width: '100%', bgcolor: '#E5E7EB', borderRadius: 999, height: 12 }}>
+                      <Box 
+                        sx={{ 
+                          bgcolor: '#6B7280', 
+                          height: 12, 
+                          borderRadius: 999,
+                          transition: 'width 0.3s',
+                          width: `${exerciseBalance.percentages.Other}%`,
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
 
         {/* Personal Records */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">🎯 Personal Records</h2>
-          {personalRecords.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {personalRecords.slice(0, 9).map(([name, pr]) => (
-                <div key={name} className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
-                  <div className="text-sm font-medium text-gray-700 mb-1">{name}</div>
-                  <div className="text-2xl font-bold text-indigo-600">{pr.weight} kg</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {new Date(pr.date).toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No personal records yet</p>
-          )}
-        </div>
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              🎯 Personal Records
+            </Typography>
+            {personalRecords.length > 0 ? (
+              <Box 
+                sx={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                  gap: 2,
+                }}
+              >
+                {personalRecords.slice(0, 9).map(([name, pr]) => (
+                  <Paper
+                    key={name}
+                    elevation={0}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      p: 2,
+                      transition: 'border-color 0.2s',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                      },
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight="medium" color="text.secondary" gutterBottom>
+                      {name}
+                    </Typography>
+                    <Typography variant="h4" fontWeight="bold" color="primary">
+                      {pr.weight} kg
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {new Date(pr.date).toLocaleDateString()}
+                    </Typography>
+                  </Paper>
+                ))}
+              </Box>
+            ) : (
+              <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                No personal records yet
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Leaderboards */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">🏅 Leaderboards</h2>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Exercise</label>
-            <select
-              value={selectedLeaderboardExercise}
-              onChange={(e) => setSelectedLeaderboardExercise(e.target.value)}
-              className="w-full md:w-1/2 px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
-            >
-              <option value="">Choose an exercise...</option>
-              {allExercises.map(ex => (
-                <option key={ex} value={ex}>{ex}</option>
-              ))}
-            </select>
-          </div>
-          {leaderboard.length > 0 ? (
-            <div className="space-y-2">
-              {leaderboard.map((entry, idx) => (
-                <div 
-                  key={idx}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    idx === 0 ? 'bg-yellow-50 border-2 border-yellow-300' :
-                    idx === 1 ? 'bg-gray-50 border-2 border-gray-300' :
-                    idx === 2 ? 'bg-orange-50 border-2 border-orange-300' :
-                    'bg-gray-50'
-                  }`}
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              🏅 Leaderboards
+            </Typography>
+            <Box sx={{ mb: 3 }}>
+              <FormControl fullWidth sx={{ maxWidth: { md: '50%' } }}>
+                <InputLabel>Select Exercise</InputLabel>
+                <Select
+                  value={selectedLeaderboardExercise}
+                  onChange={(e) => setSelectedLeaderboardExercise(e.target.value)}
+                  label="Select Exercise"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className={`text-2xl font-bold ${
-                      idx === 0 ? 'text-yellow-600' :
-                      idx === 1 ? 'text-gray-600' :
-                      idx === 2 ? 'text-orange-600' :
-                      'text-gray-400'
-                    }`}>
-                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
-                    </span>
-                    <div className="w-10 h-10 relative rounded-full overflow-hidden">
-                      <Image 
+                  <MenuItem value="">Choose an exercise...</MenuItem>
+                  {allExercises.map(ex => (
+                    <MenuItem key={ex} value={ex}>{ex}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            {leaderboard.length > 0 ? (
+              <Stack spacing={1}>
+                {leaderboard.map((entry, idx) => (
+                  <Paper
+                    key={idx}
+                    elevation={0}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 1.5,
+                      borderRadius: 2,
+                      bgcolor: 
+                        idx === 0 ? '#FFFBEB' :
+                        idx === 1 ? '#F9FAFB' :
+                        idx === 2 ? '#FFF7ED' :
+                        '#F9FAFB',
+                      border: '2px solid',
+                      borderColor:
+                        idx === 0 ? '#FCD34D' :
+                        idx === 1 ? '#D1D5DB' :
+                        idx === 2 ? '#FDBA74' :
+                        'transparent',
+                    }}
+                  >
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Typography 
+                        variant="h5" 
+                        fontWeight="bold"
+                        sx={{
+                          color:
+                            idx === 0 ? '#D97706' :
+                            idx === 1 ? '#6B7280' :
+                            idx === 2 ? '#EA580C' :
+                            '#9CA3AF',
+                        }}
+                      >
+                        {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                      </Typography>
+                      <Avatar 
                         src={isValidImagePath(entry.avatar) ? entry.avatar : DEFAULT_AVATAR}
                         alt={entry.name}
-                        fill
-                        sizes="40px"
-                        className="object-cover"
+                        sx={{ width: 40, height: 40 }}
                       />
-                    </div>
-                    <span className="font-medium text-gray-900">{entry.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-indigo-600">{entry.maxWeight} kg</div>
-                    <div className="text-xs text-gray-500">{new Date(entry.date).toLocaleDateString()}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : selectedLeaderboardExercise ? (
-            <p className="text-gray-500 text-center py-4">No data found for this exercise</p>
-          ) : (
-            <p className="text-gray-500 text-center py-4">Select an exercise to view leaderboard</p>
-          )}
-        </div>
+                      <Typography fontWeight="medium" color="text.primary">
+                        {entry.name}
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography variant="h6" fontWeight="bold" color="primary">
+                        {entry.maxWeight} kg
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(entry.date).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                  </Paper>
+                ))}
+              </Stack>
+            ) : selectedLeaderboardExercise ? (
+              <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                No data found for this exercise
+              </Typography>
+            ) : (
+              <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                Select an exercise to view leaderboard
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Progress Comparison */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">📊 Compare with Friends</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Exercise</label>
-              <select
-                value={comparisonExercise}
-                onChange={(e) => setComparisonExercise(e.target.value)}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
-              >
-                <option value="">Choose an exercise...</option>
-                {allExercises.map(ex => (
-                  <option key={ex} value={ex}>{ex}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Friends to Compare</label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
-                {users.filter(u => u.id !== currentUser?.id).map(user => (
-                  <button
-                    key={user.id}
-                    onClick={() => {
-                      if (selectedFriends.includes(user.id)) {
-                        setSelectedFriends(selectedFriends.filter(id => id !== user.id))
-                      } else {
-                        setSelectedFriends([...selectedFriends, user.id])
-                      }
-                    }}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                      selectedFriends.includes(user.id)
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {user.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          {Object.keys(comparisonData).length > 0 ? (
-            <div>
-              <div className="relative h-64 border-l-2 border-b-2 border-gray-300 mb-4">
-                {/* Y-axis labels */}
-                <div className="absolute -left-12 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-600">
-                  <span>{Math.ceil(maxComparisonWeight)} kg</span>
-                  <span>{Math.ceil(maxComparisonWeight * 0.75)} kg</span>
-                  <span>{Math.ceil(maxComparisonWeight * 0.5)} kg</span>
-                  <span>{Math.ceil(maxComparisonWeight * 0.25)} kg</span>
-                  <span>0 kg</span>
-                </div>
-
-                {/* Chart area with lines */}
-                <div className="absolute inset-0 pl-2">
-                  {Object.values(comparisonData).map((userData, userIdx) => {
-                    const sortedSessions = userData.sessions.sort((a, b) => 
-                      new Date(a.date).getTime() - new Date(b.date).getTime()
-                    )
-                    return sortedSessions.map((session, idx) => {
-                      if (idx === 0) return null
-                      const prevSession = sortedSessions[idx - 1]
-                      const x1 = (idx - 1) / (sortedSessions.length - 1) * 100
-                      const x2 = idx / (sortedSessions.length - 1) * 100
-                      const y1 = 100 - (prevSession.maxWeight / maxComparisonWeight * 100)
-                      const y2 = 100 - (session.maxWeight / maxComparisonWeight * 100)
-                      
-                      return (
-                        <svg 
-                          key={`${userIdx}-${idx}`}
-                          className="absolute inset-0 pointer-events-none"
-                          style={{ width: '100%', height: '100%' }}
-                        >
-                          <line
-                            x1={`${x1}%`}
-                            y1={`${y1}%`}
-                            x2={`${x2}%`}
-                            y2={`${y2}%`}
-                            stroke={userColors[userIdx % userColors.length]}
-                            strokeWidth="3"
-                          />
-                        </svg>
-                      )
-                    })
-                  })}
-                  
-                  {/* Data points */}
-                  {Object.values(comparisonData).map((userData, userIdx) => {
-                    const sortedSessions = userData.sessions.sort((a, b) => 
-                      new Date(a.date).getTime() - new Date(b.date).getTime()
-                    )
-                    return sortedSessions.map((session, idx) => {
-                      const x = idx / (sortedSessions.length - 1) * 100
-                      const y = 100 - (session.maxWeight / maxComparisonWeight * 100)
-                      
-                      return (
-                        <div
-                          key={`point-${userIdx}-${idx}`}
-                          className="absolute w-3 h-3 rounded-full -translate-x-1/2 -translate-y-1/2 group"
-                          style={{
-                            left: `${x}%`,
-                            top: `${y}%`,
-                            backgroundColor: userColors[userIdx % userColors.length]
-                          }}
-                          title={`${userData.name}: ${session.maxWeight}kg on ${new Date(session.date).toLocaleDateString()}`}
-                        >
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                            {userData.name}: {session.maxWeight} kg
-                            <div className="text-gray-400">{new Date(session.date).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      )
-                    })
-                  })}
-                </div>
-              </div>
-              
-              {/* Legend */}
-              <div className="flex flex-wrap gap-3 justify-center">
-                {Object.entries(comparisonData).map(([userId, userData], idx) => (
-                  <div key={userId} className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: userColors[idx % userColors.length] }}
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              📊 Compare with Friends
+            </Typography>
+            <Box 
+              sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel>Select Exercise</InputLabel>
+                <Select
+                  value={comparisonExercise}
+                  onChange={(e) => setComparisonExercise(e.target.value)}
+                  label="Select Exercise"
+                >
+                  <MenuItem value="">Choose an exercise...</MenuItem>
+                  {allExercises.map(ex => (
+                    <MenuItem key={ex} value={ex}>{ex}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Box>
+                <Typography variant="body2" fontWeight="medium" color="text.secondary" gutterBottom>
+                  Select Friends to Compare
+                </Typography>
+                <Box 
+                  sx={{ 
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    maxHeight: 128,
+                    overflowY: 'auto',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 1,
+                  }}
+                >
+                  {users.filter(u => u.id !== currentUser?.id).map(user => (
+                    <Chip
+                      key={user.id}
+                      label={user.name}
+                      onClick={() => {
+                        if (selectedFriends.includes(user.id)) {
+                          setSelectedFriends(selectedFriends.filter(id => id !== user.id))
+                        } else {
+                          setSelectedFriends([...selectedFriends, user.id])
+                        }
+                      }}
+                      color={selectedFriends.includes(user.id) ? 'primary' : 'default'}
+                      sx={{
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
                     />
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 relative rounded-full overflow-hidden">
-                        <Image 
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+            {Object.keys(comparisonData).length > 0 ? (
+              <Box>
+                <Box 
+                  sx={{ 
+                    position: 'relative',
+                    height: 256,
+                    borderLeft: '2px solid',
+                    borderBottom: '2px solid',
+                    borderColor: 'divider',
+                    mb: 2,
+                  }}
+                >
+                  {/* Y-axis labels */}
+                  <Box 
+                    sx={{ 
+                      position: 'absolute',
+                      left: -48,
+                      top: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      fontSize: '0.75rem',
+                      color: 'text.secondary',
+                    }}
+                  >
+                    <span>{Math.ceil(maxComparisonWeight)} kg</span>
+                    <span>{Math.ceil(maxComparisonWeight * 0.75)} kg</span>
+                    <span>{Math.ceil(maxComparisonWeight * 0.5)} kg</span>
+                    <span>{Math.ceil(maxComparisonWeight * 0.25)} kg</span>
+                    <span>0 kg</span>
+                  </Box>
+
+                  {/* Chart area with lines */}
+                  <Box sx={{ position: 'absolute', inset: 0, pl: 1 }}>
+                    {Object.values(comparisonData).map((userData, userIdx) => {
+                      const sortedSessions = userData.sessions.sort((a, b) => 
+                        new Date(a.date).getTime() - new Date(b.date).getTime()
+                      )
+                      return sortedSessions.map((session, idx) => {
+                        if (idx === 0) return null
+                        const prevSession = sortedSessions[idx - 1]
+                        const x1 = (idx - 1) / (sortedSessions.length - 1) * 100
+                        const x2 = idx / (sortedSessions.length - 1) * 100
+                        const y1 = 100 - (prevSession.maxWeight / maxComparisonWeight * 100)
+                        const y2 = 100 - (session.maxWeight / maxComparisonWeight * 100)
+                        
+                        return (
+                          <svg 
+                            key={`${userIdx}-${idx}`}
+                            style={{ 
+                              position: 'absolute',
+                              inset: 0,
+                              pointerEvents: 'none',
+                              width: '100%',
+                              height: '100%',
+                            }}
+                          >
+                            <line
+                              x1={`${x1}%`}
+                              y1={`${y1}%`}
+                              x2={`${x2}%`}
+                              y2={`${y2}%`}
+                              stroke={userColors[userIdx % userColors.length]}
+                              strokeWidth="3"
+                            />
+                          </svg>
+                        )
+                      })
+                    })}
+                    
+                    {/* Data points */}
+                    {Object.values(comparisonData).map((userData, userIdx) => {
+                      const sortedSessions = userData.sessions.sort((a, b) => 
+                        new Date(a.date).getTime() - new Date(b.date).getTime()
+                      )
+                      return sortedSessions.map((session, idx) => {
+                        const x = idx / (sortedSessions.length - 1) * 100
+                        const y = 100 - (session.maxWeight / maxComparisonWeight * 100)
+                        
+                        return (
+                          <Box
+                            key={`point-${userIdx}-${idx}`}
+                            sx={{
+                              position: 'absolute',
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              left: `${x}%`,
+                              top: `${y}%`,
+                              bgcolor: userColors[userIdx % userColors.length],
+                              '&:hover .tooltip': {
+                                display: 'block',
+                              },
+                            }}
+                            title={`${userData.name}: ${session.maxWeight}kg on ${new Date(session.date).toLocaleDateString()}`}
+                          >
+                            <Box
+                              className="tooltip"
+                              sx={{
+                                position: 'absolute',
+                                bottom: '100%',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                mb: 1,
+                                display: 'none',
+                                bgcolor: '#111827',
+                                color: 'white',
+                                fontSize: '0.75rem',
+                                borderRadius: 1,
+                                px: 1,
+                                py: 0.5,
+                                whiteSpace: 'nowrap',
+                                zIndex: 10,
+                              }}
+                            >
+                              {userData.name}: {session.maxWeight} kg
+                              <Box sx={{ color: '#9CA3AF' }}>
+                                {new Date(session.date).toLocaleDateString()}
+                              </Box>
+                            </Box>
+                          </Box>
+                        )
+                      })
+                    })}
+                  </Box>
+                </Box>
+                
+                {/* Legend */}
+                <Stack direction="row" flexWrap="wrap" spacing={2} justifyContent="center">
+                  {Object.entries(comparisonData).map(([userId, userData], idx) => (
+                    <Stack key={userId} direction="row" spacing={1} alignItems="center">
+                      <Box 
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          bgcolor: userColors[idx % userColors.length],
+                        }}
+                      />
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Avatar 
                           src={isValidImagePath(userData.avatar) ? userData.avatar : DEFAULT_AVATAR}
                           alt={userData.name}
-                          fill
-                          sizes="24px"
-                          className="object-cover"
+                          sx={{ width: 24, height: 24 }}
                         />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{userData.name}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : comparisonExercise && selectedFriends.length > 0 ? (
-            <p className="text-gray-500 text-center py-4">No comparison data available</p>
-          ) : (
-            <p className="text-gray-500 text-center py-4">Select an exercise and friends to compare progress</p>
-          )}
-        </div>
+                        <Typography variant="body2" fontWeight="medium" color="text.secondary">
+                          {userData.name}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            ) : comparisonExercise && selectedFriends.length > 0 ? (
+              <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                No comparison data available
+              </Typography>
+            ) : (
+              <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                Select an exercise and friends to compare progress
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Top Exercises */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Top 5 Exercises</h2>
-          <div className="space-y-3">
-            {topExercises.map(([name, count], idx) => (
-              <div key={name} className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
-                  <span className="font-medium text-gray-900">{name}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-32 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-indigo-600 h-2 rounded-full" 
-                      style={{ width: `${(count / topExercises[0][1]) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm text-gray-600 w-16 text-right">{count} sessions</span>
-                </div>
-              </div>
-            ))}
-            {topExercises.length === 0 && (
-              <p className="text-gray-500 text-center py-4">No exercise data yet</p>
-            )}
-          </div>
-        </div>
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Top 5 Exercises
+            </Typography>
+            <Stack spacing={2}>
+              {topExercises.map(([name, count], idx) => (
+                <Stack key={name} direction="row" alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1 }}>
+                    <Typography variant="h6" fontWeight="bold" color="text.disabled">
+                      #{idx + 1}
+                    </Typography>
+                    <Typography fontWeight="medium" color="text.primary">
+                      {name}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Box sx={{ width: 128, bgcolor: '#E5E7EB', borderRadius: 999, height: 8 }}>
+                      <Box 
+                        sx={{ 
+                          bgcolor: 'primary.main',
+                          height: 8,
+                          borderRadius: 999,
+                          width: `${(count / topExercises[0][1]) * 100}%`,
+                        }}
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ width: 80, textAlign: 'right' }}>
+                      {count} sessions
+                    </Typography>
+                  </Stack>
+                </Stack>
+              ))}
+              {topExercises.length === 0 && (
+                <Typography color="text.secondary" align="center" sx={{ py: 2 }}>
+                  No exercise data yet
+                </Typography>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
 
         {/* Exercise Progress Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Exercise Progress Tracker</h2>
-          
-          {/* Exercise Selector and Options */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Exercise</label>
-              <select
-                value={selectedExercise}
-                onChange={(e) => setSelectedExercise(e.target.value)}
-                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
-              >
-                <option value="">Choose an exercise...</option>
-                {allExercises.map(ex => (
-                  <option key={ex} value={ex}>{ex}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">View Mode</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowAllTime(true)}
-                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium ${
-                    showAllTime 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+        <Card>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Exercise Progress Tracker
+            </Typography>
+            
+            {/* Exercise Selector and Options */}
+            <Box 
+              sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel>Select Exercise</InputLabel>
+                <Select
+                  value={selectedExercise}
+                  onChange={(e) => setSelectedExercise(e.target.value)}
+                  label="Select Exercise"
                 >
-                  All Time
-                </button>
-                <button
-                  onClick={() => setShowAllTime(false)}
-                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium ${
-                    !showAllTime 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Limited
-                </button>
-              </div>
-            </div>
-            {!showAllTime && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sessions to Show</label>
-                <input
-                  type="number"
-                  min="5"
-                  max="100"
-                  value={sessionLimit}
-                  onChange={(e) => setSessionLimit(parseInt(e.target.value) || 20)}
-                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
-                />
-              </div>
-            )}
-          </div>
+                  <MenuItem value="">Choose an exercise...</MenuItem>
+                  {allExercises.map(ex => (
+                    <MenuItem key={ex} value={ex}>{ex}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Box>
+                <Typography variant="body2" fontWeight="medium" color="text.secondary" gutterBottom>
+                  View Mode
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    onClick={() => setShowAllTime(true)}
+                    variant={showAllTime ? 'contained' : 'outlined'}
+                    fullWidth
+                    sx={{ textTransform: 'none' }}
+                  >
+                    All Time
+                  </Button>
+                  <Button
+                    onClick={() => setShowAllTime(false)}
+                    variant={!showAllTime ? 'contained' : 'outlined'}
+                    fullWidth
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Limited
+                  </Button>
+                </Stack>
+              </Box>
+              {!showAllTime && (
+                <FormControl fullWidth>
+                  <InputLabel>Sessions to Show</InputLabel>
+                  <Select
+                    value={sessionLimit}
+                    onChange={(e) => setSessionLimit(Number(e.target.value))}
+                    label="Sessions to Show"
+                  >
+                    <MenuItem value={5}>5</MenuItem>
+                    <MenuItem value={10}>10</MenuItem>
+                    <MenuItem value={20}>20</MenuItem>
+                    <MenuItem value={50}>50</MenuItem>
+                    <MenuItem value={100}>100</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            </Box>
 
-          {/* Chart */}
-          {exerciseProgress && exerciseProgress.sessions.length > 0 ? (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Max Weight Progress</h3>
-                <div className="relative h-64 border-l-2 border-b-2 border-gray-300">
-                  {/* Y-axis labels */}
-                  <div className="absolute -left-12 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-600">
-                    <span>{Math.ceil(maxWeightInData)} kg</span>
-                    <span>{Math.ceil(maxWeightInData * 0.75)} kg</span>
-                    <span>{Math.ceil(maxWeightInData * 0.5)} kg</span>
-                    <span>{Math.ceil(maxWeightInData * 0.25)} kg</span>
-                    <span>0 kg</span>
-                  </div>
+            {/* Chart */}
+            {exerciseProgress && exerciseProgress.sessions.length > 0 ? (
+              <Stack spacing={3}>
+                <Box>
+                  <Typography variant="body2" fontWeight="bold" color="text.secondary" gutterBottom>
+                    Max Weight Progress
+                  </Typography>
+                  <Box 
+                    sx={{ 
+                      position: 'relative',
+                      height: 256,
+                      borderLeft: '2px solid',
+                      borderBottom: '2px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    {/* Y-axis labels */}
+                    <Box 
+                      sx={{ 
+                        position: 'absolute',
+                        left: -48,
+                        top: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        fontSize: '0.75rem',
+                        color: 'text.secondary',
+                      }}
+                    >
+                      <span>{Math.ceil(maxWeightInData)} kg</span>
+                      <span>{Math.ceil(maxWeightInData * 0.75)} kg</span>
+                      <span>{Math.ceil(maxWeightInData * 0.5)} kg</span>
+                      <span>{Math.ceil(maxWeightInData * 0.25)} kg</span>
+                      <span>0 kg</span>
+                    </Box>
 
-                  {/* Chart area */}
-                  <div className="absolute inset-0 flex items-end justify-around px-2">
-                    {exerciseProgress.sessions.slice().reverse().map((session, idx) => {
-                      const heightPercent = maxWeightInData > 0 ? (session.max_weight / maxWeightInData) * 100 : 0
-                      return (
-                        <div key={idx} className="flex-1 flex flex-col items-center justify-end mx-0.5 group">
-                          <div className="relative w-full">
-                            <div 
-                              className="w-full bg-indigo-500 hover:bg-indigo-600 transition-all rounded-t cursor-pointer"
-                              style={{ height: `${Math.max(heightPercent * 2.4, 4)}px` }}
-                              title={`${session.max_weight} kg on ${new Date(session.date).toLocaleDateString()}`}
-                            />
-                            {/* Tooltip */}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                    {/* Chart area */}
+                    <Box 
+                      sx={{ 
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        justifyContent: 'space-around',
+                        px: 1,
+                      }}
+                    >
+                      {exerciseProgress.sessions.slice().reverse().map((session, idx) => {
+                        const heightPercent = maxWeightInData > 0 ? (session.max_weight / maxWeightInData) * 100 : 0
+                        return (
+                          <Box 
+                            key={idx} 
+                            sx={{ 
+                              flex: 1,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              mx: 0.125,
+                              position: 'relative',
+                              '&:hover .tooltip': {
+                                display: 'block',
+                              },
+                            }}
+                          >
+                            <Box sx={{ position: 'relative', width: '100%' }}>
+                              <Box 
+                                sx={{
+                                  width: '100%',
+                                  bgcolor: 'primary.main',
+                                  transition: 'all 0.2s',
+                                  borderTopLeftRadius: 1,
+                                  borderTopRightRadius: 1,
+                                  cursor: 'pointer',
+                                  height: `${Math.max(heightPercent * 2.4, 4)}px`,
+                                  '&:hover': {
+                                    bgcolor: 'primary.dark',
+                                  },
+                                }}
+                                title={`${session.max_weight} kg on ${new Date(session.date).toLocaleDateString()}`}
+                              />
+                              {/* Tooltip */}
+                              <Box
+                                className="tooltip"
+                                sx={{
+                                  position: 'absolute',
+                                  bottom: '100%',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)',
+                                  mb: 1,
+                                  display: 'none',
+                                  bgcolor: '#111827',
+                                  color: 'white',
+                                  fontSize: '0.75rem',
+                                  borderRadius: 1,
+                                  px: 1,
+                                  py: 0.5,
+                                  whiteSpace: 'nowrap',
+                                  zIndex: 10,
+                                }}
+                              >
+                                {session.max_weight} kg
+                                <Box sx={{ color: '#9CA3AF' }}>
+                                  {new Date(session.date).toLocaleDateString()}
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Box>
+                        )
+                      })}
+                    </Box>
+                  </Box>
+                  {/* X-axis - simplified */}
+                  <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(exerciseProgress.sessions[exerciseProgress.sessions.length - 1]?.date).toLocaleDateString()}
+                    </Typography>
+                    <Typography variant="caption" color="text.disabled">
+                      ← Time →
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(exerciseProgress.sessions[0]?.date).toLocaleDateString()}
+                    </Typography>
+                  </Stack>
+                </Box>
+
+                {/* Session Details Table */}
+                <Box>
+                  <Typography variant="body2" fontWeight="bold" color="text.secondary" gutterBottom>
+                    Session Details
+                  </Typography>
+                  <Box sx={{ overflowX: 'auto' }}>
+                    <Box
+                      component="table"
+                      sx={{
+                        minWidth: '100%',
+                        borderCollapse: 'separate',
+                        borderSpacing: 0,
+                      }}
+                    >
+                      <Box component="thead" sx={{ bgcolor: 'background.paper' }}>
+                        <Box component="tr">
+                          <Box 
+                            component="th" 
+                            sx={{ 
+                              px: 2,
+                              py: 1,
+                              textAlign: 'left',
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: 'text.secondary',
+                            }}
+                          >
+                            Date
+                          </Box>
+                          <Box 
+                            component="th" 
+                            sx={{ 
+                              px: 2,
+                              py: 1,
+                              textAlign: 'left',
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: 'text.secondary',
+                            }}
+                          >
+                            Max Weight
+                          </Box>
+                          <Box 
+                            component="th" 
+                            sx={{ 
+                              px: 2,
+                              py: 1,
+                              textAlign: 'left',
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: 'text.secondary',
+                            }}
+                          >
+                            Total Volume
+                          </Box>
+                        </Box>
+                      </Box>
+                      <Box component="tbody" sx={{ bgcolor: 'background.default' }}>
+                        {exerciseProgress.sessions.map((session, idx) => (
+                          <Box 
+                            component="tr" 
+                            key={idx}
+                            sx={{
+                              '&:hover': {
+                                bgcolor: 'background.paper',
+                              },
+                            }}
+                          >
+                            <Box 
+                              component="td" 
+                              sx={{ 
+                                px: 2,
+                                py: 1,
+                                fontSize: '0.875rem',
+                                color: 'text.primary',
+                                borderTop: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              {new Date(session.date).toLocaleDateString()}
+                            </Box>
+                            <Box 
+                              component="td" 
+                              sx={{ 
+                                px: 2,
+                                py: 1,
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                color: 'primary.main',
+                                borderTop: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
                               {session.max_weight} kg
-                              <div className="text-gray-400">{new Date(session.date).toLocaleDateString()}</div>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-                {/* X-axis - simplified */}
-                <div className="mt-2 flex justify-between text-xs text-gray-600">
-                  <span>
-                    {new Date(exerciseProgress.sessions[exerciseProgress.sessions.length - 1]?.date).toLocaleDateString()}
-                  </span>
-                  <span className="text-gray-400">← Time →</span>
-                  <span>
-                    {new Date(exerciseProgress.sessions[0]?.date).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Session Details Table */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Session Details</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Date</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Max Weight</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Total Volume</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {exerciseProgress.sessions.map((session, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-sm text-gray-900">
-                            {new Date(session.date).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-2 text-sm font-semibold text-indigo-600">
-                            {session.max_weight} kg
-                          </td>
-                          <td className="px-4 py-2 text-sm text-gray-600">
-                            {session.total_volume.toLocaleString()} kg
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          ) : selectedExercise ? (
-            <div className="text-center py-12 text-gray-500">
-              No data found for this exercise
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              Select an exercise to view progress
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+                            </Box>
+                            <Box 
+                              component="td" 
+                              sx={{ 
+                                px: 2,
+                                py: 1,
+                                fontSize: '0.875rem',
+                                color: 'text.secondary',
+                                borderTop: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              {session.total_volume.toLocaleString()} kg
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              </Stack>
+            ) : selectedExercise ? (
+              <Box sx={{ textAlign: 'center', py: 6 }}>
+                <Typography color="text.secondary">
+                  No data found for this exercise
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 6 }}>
+                <Typography color="text.secondary">
+                  Select an exercise to view progress
+                </Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   )
 }

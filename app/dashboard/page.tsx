@@ -6,6 +6,32 @@ import Image from 'next/image'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 import { supabase } from '@/lib/supabase'
 import { User, Session, ParticipantData, Exercise, ExerciseSet } from '@/lib/types'
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  IconButton,
+  Avatar,
+  AppBar,
+  Toolbar,
+  Chip,
+  Stack,
+  Paper,
+} from '@mui/material'
+import {
+  Add as AddIcon,
+  FitnessCenter as FitnessIcon,
+  BarChart as BarChartIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material'
 
 const BODY_PARTS = [
   'Chest',
@@ -320,352 +346,584 @@ export default function DashboardPage() {
   if (!currentUser) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-gray-900">Training Tracker</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="static" sx={{ bgcolor: 'background.paper', boxShadow: 1 }}>
+        <Container maxWidth="lg">
+          <Toolbar sx={{ justifyContent: 'space-between', minHeight: '64px' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              Training Tracker
+            </Typography>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Button
                 onClick={() => router.push('/workouts')}
-                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                variant="outlined"
+                startIcon={<BarChartIcon />}
+                sx={{
+                  borderRadius: '20px',
+                  textTransform: 'none',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: 2,
+                  },
+                }}
               >
                 View Workouts
-              </button>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 relative rounded-full overflow-hidden">
-                  <Image 
-                    src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR} 
-                    alt={currentUser.name}
-                    fill
-                    sizes="32px"
-                    className="object-cover"
-                  />
-                </div>
-                <span className="text-sm font-medium text-gray-700">{currentUser.name}</span>
-              </div>
-              <button
+              </Button>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Avatar 
+                  src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR}
+                  alt={currentUser.name}
+                  sx={{ width: 32, height: 32 }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                  {currentUser.name}
+                </Typography>
+              </Stack>
+              <Button
                 onClick={handleLogout}
-                className="text-sm text-gray-600 hover:text-gray-800"
+                variant="text"
+                sx={{
+                  textTransform: 'none',
+                  color: 'text.secondary',
+                  '&:hover': { color: 'text.primary' },
+                }}
               >
                 Switch User
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+              </Button>
+            </Stack>
+          </Toolbar>
+        </Container>
+      </AppBar>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Training Sessions</h2>
-          <button
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            Training Sessions
+          </Typography>
+          <Button
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            variant="contained"
+            startIcon={showForm ? null : <AddIcon />}
+            sx={{
+              borderRadius: '20px',
+              textTransform: 'none',
+              px: 3,
+              py: 1.5,
+              fontWeight: 600,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: 4,
+              },
+            }}
           >
             {showForm ? 'Cancel' : 'Add Session'}
-          </button>
-        </div>
+          </Button>
+        </Stack>
 
         {showForm && (
-          <div className="mb-8 bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">New Gym Session</h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Date</label>
-                  <input
+          <Card 
+            sx={{ 
+              mb: 4, 
+              borderRadius: '20px',
+              boxShadow: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: 6,
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+                New Gym Session
+              </Typography>
+              <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                  <TextField
                     type="date"
+                    label="Date"
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '20px',
+                      },
+                    }}
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Body Part</label>
-                  <select
-                    required
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
-                  >
-                    <option value="">Select body part...</option>
-                    {BODY_PARTS.map(part => (
-                      <option key={part} value={part}>{part}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Session Exercises - Shared by all participants */}
-              {formData.type && (
-                <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-800 mb-3">
-                    Exercises for this session (everyone does these)
-                  </label>
-                  
-                  <div className="flex gap-2 mb-3">
-                    <select
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          addExerciseToSession(e.target.value)
-                          e.target.value = ''
-                        }
+                  <FormControl fullWidth required>
+                    <InputLabel>Body Part</InputLabel>
+                    <Select
+                      value={formData.type}
+                      label="Body Part"
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      sx={{
+                        borderRadius: '20px',
                       }}
-                      className="flex-1 text-sm text-gray-900 border border-gray-300 rounded px-3 py-2"
                     >
-                      <option value="">+ Add Exercise</option>
-                      {getAvailableExercises(formData.type).map(ex => (
-                        <option key={ex} value={ex}>{ex}</option>
+                      <MenuItem value="">Select body part...</MenuItem>
+                      {BODY_PARTS.map(part => (
+                        <MenuItem key={part} value={part}>{part}</MenuItem>
                       ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const name = prompt('Enter custom exercise name:')
-                        if (name && name.trim()) {
-                          addCustomExercise(formData.type, name.trim())
-                          addExerciseToSession(name.trim())
-                        }
-                      }}
-                      className="text-sm px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-medium"
-                    >
-                      Custom
-                    </button>
-                  </div>
+                    </Select>
+                  </FormControl>
+                </Stack>
 
-                  {sessionExercises.length > 0 && (
-                    <div className="space-y-2">
-                      {sessionExercises.map((exerciseName, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-white px-3 py-2 rounded border border-gray-200">
-                          <span className="font-medium text-gray-900">{exerciseName}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeExerciseFromSession(exerciseName)}
-                            className="text-red-600 hover:text-red-800 text-sm"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <label className="block text-sm font-medium text-gray-700">Participants</label>
-                  <button
-                    type="button"
-                    onClick={addParticipant}
-                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                {/* Session Exercises - Shared by all participants */}
+                {formData.type && (
+                  <Paper 
+                    sx={{ 
+                      p: 2.5, 
+                      bgcolor: 'primary.50',
+                      border: 2,
+                      borderColor: 'primary.200',
+                      borderRadius: '20px',
+                    }}
                   >
-                    + Add Person
-                  </button>
-                </div>
-                
-                <div className="space-y-6">
-                  {participants.map((participant, pIdx) => (
-                    <div key={pIdx} className="border-2 border-gray-300 rounded-lg p-4 bg-white">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-10 h-10 relative rounded-full overflow-hidden flex-shrink-0">
-                            <Image 
-                              src={isValidImagePath(participant.user_avatar) ? participant.user_avatar : DEFAULT_AVATAR} 
-                              alt={participant.user_name || 'User'}
-                              fill
-                              sizes="40px"
-                              className="object-cover"
-                            />
-                          </div>
-                          <select
-                            value={participant.user_id}
-                            onChange={(e) => {
-                              const user = users.find(u => u.id === e.target.value)
-                              if (user) selectUserForParticipant(pIdx, user)
+                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 2, color: 'text.primary' }}>
+                      Exercises for this session (everyone does these)
+                    </Typography>
+                    
+                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                      <FormControl fullWidth size="small">
+                        <Select
+                          displayEmpty
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              addExerciseToSession(e.target.value as string)
+                              e.target.value = ''
+                            }
+                          }}
+                          sx={{ borderRadius: '20px', bgcolor: 'background.paper' }}
+                        >
+                          <MenuItem value="">+ Add Exercise</MenuItem>
+                          {getAvailableExercises(formData.type).map(ex => (
+                            <MenuItem key={ex} value={ex}>{ex}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="contained"
+                        onClick={() => {
+                          const name = prompt('Enter custom exercise name:')
+                          if (name && name.trim()) {
+                            addCustomExercise(formData.type, name.trim())
+                            addExerciseToSession(name.trim())
+                          }
+                        }}
+                        sx={{
+                          borderRadius: '20px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          px: 3,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Custom
+                      </Button>
+                    </Stack>
+
+                    {sessionExercises.length > 0 && (
+                      <Stack spacing={1}>
+                        {sessionExercises.map((exerciseName, idx) => (
+                          <Box 
+                            key={idx} 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between',
+                              bgcolor: 'background.paper',
+                              px: 2,
+                              py: 1.5,
+                              borderRadius: '20px',
+                              border: 1,
+                              borderColor: 'divider',
                             }}
-                            required
-                            className="text-sm font-medium text-gray-900 border border-gray-300 rounded px-3 py-1 bg-white"
                           >
-                            <option value="">Select person...</option>
-                            {users.map(user => (
-                              <option key={user.id} value={user.id}>{user.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        {participants.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeParticipant(pIdx)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Remove Person
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Exercise List */}
-                      <div className="space-y-3 mb-3">
-                        {participant.exercises.map((exercise, eIdx) => (
-                          <div key={eIdx} className="border border-gray-200 rounded p-3 bg-gray-50">
-                            <h4 className="font-semibold text-gray-900 mb-2">{exercise.exercise_name}</h4>
-                            
-                            {/* Sets */}
-                            <div className="space-y-2 mb-2">{exercise.sets.map((set, sIdx) => (
-                                <div key={sIdx} className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-600 w-12">Set {set.set_number}</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={set.weight || ''}
-                                    onChange={(e) => updateSet(pIdx, eIdx, sIdx, 'weight', parseFloat(e.target.value) || 0)}
-                                    placeholder="Weight"
-                                    className="w-20 px-2 py-1 text-sm text-gray-900 border border-gray-300 rounded"
-                                  />
-                                  <span className="text-xs text-gray-600">kg x</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={set.reps || ''}
-                                    onChange={(e) => updateSet(pIdx, eIdx, sIdx, 'reps', parseInt(e.target.value) || 0)}
-                                    placeholder="Reps"
-                                    className="w-16 px-2 py-1 text-sm text-gray-900 border border-gray-300 rounded"
-                                  />
-                                  {exercise.sets.length > 1 && (
-                                    <button
-                                      type="button"
-                                      onClick={() => removeSetFromExercise(pIdx, eIdx, sIdx)}
-                                      className="text-red-500 hover:text-red-700 text-xs"
-                                    >
-                                      ✕
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                            
-                            <button
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {exerciseName}
+                            </Typography>
+                            <Button
                               type="button"
-                              onClick={() => addSetToExercise(pIdx, eIdx)}
-                              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                              size="small"
+                              onClick={() => removeExerciseFromSession(exerciseName)}
+                              sx={{
+                                color: 'error.main',
+                                textTransform: 'none',
+                                minWidth: 'auto',
+                                '&:hover': { color: 'error.dark' },
+                              }}
                             >
-                              + Add Set
-                            </button>
-                          </div>
+                              Remove
+                            </Button>
+                          </Box>
                         ))}
-                      </div>
+                      </Stack>
+                    )}
+                  </Paper>
+                )}
 
-                      {/* Notes */}
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">Notes</label>
-                        <input
-                          type="text"
-                          value={participant.notes || ''}
-                          onChange={(e) => updateParticipant(pIdx, 'notes', e.target.value)}
-                          placeholder="Session notes..."
-                          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                      Participants
+                    </Typography>
+                    <Button
+                      type="button"
+                      onClick={addParticipant}
+                      startIcon={<AddIcon />}
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        '&:hover': { color: 'primary.dark' },
+                      }}
+                    >
+                      Add Person
+                    </Button>
+                  </Stack>
+                  
+                  <Stack spacing={3}>
+                    {participants.map((participant, pIdx) => (
+                      <Card 
+                        key={pIdx} 
+                        sx={{ 
+                          border: 2, 
+                          borderColor: 'divider',
+                          borderRadius: '20px',
+                          boxShadow: 1,
+                        }}
+                      >
+                        <CardContent sx={{ p: 2.5 }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                              <Avatar 
+                                src={isValidImagePath(participant.user_avatar) ? participant.user_avatar : DEFAULT_AVATAR}
+                                alt={participant.user_name || 'User'}
+                                sx={{ width: 40, height: 40 }}
+                              />
+                              <FormControl size="small" required sx={{ minWidth: 180 }}>
+                                <Select
+                                  value={participant.user_id}
+                                  onChange={(e) => {
+                                    const user = users.find(u => u.id === e.target.value)
+                                    if (user) selectUserForParticipant(pIdx, user)
+                                  }}
+                                  displayEmpty
+                                  sx={{
+                                    borderRadius: '20px',
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  <MenuItem value="">Select person...</MenuItem>
+                                  {users.map(user => (
+                                    <MenuItem key={user.id} value={user.id}>{user.name}</MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Stack>
+                            {participants.length > 1 && (
+                              <Button
+                                type="button"
+                                onClick={() => removeParticipant(pIdx)}
+                                startIcon={<DeleteIcon />}
+                                sx={{
+                                  color: 'error.main',
+                                  textTransform: 'none',
+                                  fontWeight: 600,
+                                  '&:hover': { color: 'error.dark' },
+                                }}
+                              >
+                                Remove Person
+                              </Button>
+                            )}
+                          </Stack>
 
-              <button
-                type="submit"
-                className="w-full px-4 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold"
-              >
-                Save Gym Session
-              </button>
-            </form>
-          </div>
+                          {/* Exercise List */}
+                          <Stack spacing={2} sx={{ mb: 2 }}>
+                            {participant.exercises.map((exercise, eIdx) => (
+                              <Paper 
+                                key={eIdx} 
+                                elevation={0}
+                                sx={{ 
+                                  border: 1,
+                                  borderColor: 'divider',
+                                  borderRadius: '20px',
+                                  p: 2,
+                                  bgcolor: 'grey.50',
+                                }}
+                              >
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+                                  {exercise.exercise_name}
+                                </Typography>
+                                
+                                {/* Sets */}
+                                <Stack spacing={1} sx={{ mb: 1.5 }}>{exercise.sets.map((set, sIdx) => (
+                                    <Stack key={sIdx} direction="row" alignItems="center" spacing={1}>
+                                      <Typography variant="caption" sx={{ color: 'text.secondary', minWidth: 48 }}>
+                                        Set {set.set_number}
+                                      </Typography>
+                                      <TextField
+                                        type="number"
+                                        size="small"
+                                        inputProps={{ min: 0 }}
+                                        value={set.weight || ''}
+                                        onChange={(e) => updateSet(pIdx, eIdx, sIdx, 'weight', parseFloat(e.target.value) || 0)}
+                                        placeholder="Weight"
+                                        sx={{
+                                          width: 80,
+                                          '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px',
+                                          },
+                                        }}
+                                      />
+                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                        kg ×
+                                      </Typography>
+                                      <TextField
+                                        type="number"
+                                        size="small"
+                                        inputProps={{ min: 0 }}
+                                        value={set.reps || ''}
+                                        onChange={(e) => updateSet(pIdx, eIdx, sIdx, 'reps', parseInt(e.target.value) || 0)}
+                                        placeholder="Reps"
+                                        sx={{
+                                          width: 64,
+                                          '& .MuiOutlinedInput-root': {
+                                            borderRadius: '12px',
+                                          },
+                                        }}
+                                      />
+                                      {exercise.sets.length > 1 && (
+                                        <IconButton
+                                          type="button"
+                                          size="small"
+                                          onClick={() => removeSetFromExercise(pIdx, eIdx, sIdx)}
+                                          sx={{
+                                            color: 'error.main',
+                                            '&:hover': { color: 'error.dark' },
+                                          }}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      )}
+                                    </Stack>
+                                  ))}
+                                </Stack>
+                                
+                                <Button
+                                  type="button"
+                                  size="small"
+                                  startIcon={<AddIcon />}
+                                  onClick={() => addSetToExercise(pIdx, eIdx)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    fontSize: '0.75rem',
+                                  }}
+                                >
+                                  Add Set
+                                </Button>
+                              </Paper>
+                            ))}
+                          </Stack>
+
+                          {/* Notes */}
+                          <TextField
+                            label="Notes"
+                            multiline
+                            rows={2}
+                            value={participant.notes || ''}
+                            onChange={(e) => updateParticipant(pIdx, 'notes', e.target.value)}
+                            placeholder="Session notes..."
+                            fullWidth
+                            size="small"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '20px',
+                              },
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                </Box>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    borderRadius: '20px',
+                    py: 1.5,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 6,
+                    },
+                  }}
+                >
+                  Save Gym Session
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         )}
 
-        <div className="space-y-4">
+        <Stack spacing={2}>
           {sessions.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg">
-              <p className="text-gray-500">No gym sessions yet. Add your first one!</p>
-            </div>
+            <Card 
+              sx={{ 
+                textAlign: 'center', 
+                py: 6,
+                borderRadius: '20px',
+                boxShadow: 1,
+              }}
+            >
+              <CardContent>
+                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                  No gym sessions yet. Add your first one!
+                </Typography>
+              </CardContent>
+            </Card>
           ) : (
             sessions.map((session) => (
-              <div key={session.id} className="bg-white rounded-lg shadow p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{session.type}</h3>
-                    <p className="text-sm text-gray-500">
-                      {new Date(session.date).toLocaleDateString()} • Added by{' '}
-                      <span className="font-medium inline-flex items-center gap-1">
-                        <span className="inline-block w-5 h-5 relative rounded-full overflow-hidden align-middle">
-                          <Image 
-                            src={session.creator_avatar} 
+              <Card 
+                key={session.id} 
+                sx={{ 
+                  borderRadius: '20px',
+                  boxShadow: 2,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    boxShadow: 4,
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        {session.type}
+                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          {new Date(session.date).toLocaleDateString()}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          •
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Added by
+                        </Typography>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Avatar 
+                            src={session.creator_avatar}
                             alt={session.creator_name}
-                            fill
-                            sizes="20px"
-                            className="object-cover"
+                            sx={{ width: 20, height: 20 }}
                           />
-                        </span>
-                        {session.creator_name}
-                      </span>
-                    </p>
-                  </div>
-                  {session.created_by === currentUser?.id && (
-                    <button
-                      onClick={() => deleteSession(session.id)}
-                      className="text-sm text-red-600 hover:text-red-800"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {session.creator_name}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    </Box>
+                    {session.created_by === currentUser?.id && (
+                      <Button
+                        onClick={() => deleteSession(session.id)}
+                        startIcon={<DeleteIcon />}
+                        sx={{
+                          color: 'error.main',
+                          textTransform: 'none',
+                          '&:hover': { color: 'error.dark' },
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </Stack>
 
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-gray-700">Participants:</p>
-                  {session.participants?.map((participant, idx) => (
-                    <div key={idx} className="bg-gray-50 p-4 rounded-md">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-10 h-10 relative rounded-full overflow-hidden flex-shrink-0">
-                          <Image 
-                            src={isValidImagePath(participant.user_avatar) ? participant.user_avatar : DEFAULT_AVATAR} 
+                  <Stack spacing={2}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                      Participants:
+                    </Typography>
+                    {session.participants?.map((participant, idx) => (
+                      <Box 
+                        key={idx} 
+                        sx={{ 
+                          bgcolor: 'grey.50',
+                          p: 2.5,
+                          borderRadius: '16px',
+                        }}
+                      >
+                        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                          <Avatar 
+                            src={isValidImagePath(participant.user_avatar) ? participant.user_avatar : DEFAULT_AVATAR}
                             alt={participant.user_name}
-                            fill
-                            sizes="40px"
-                            className="object-cover"
+                            sx={{ width: 40, height: 40 }}
                           />
-                        </div>
-                        <p className="font-medium text-gray-900">{participant.user_name}</p>
-                      </div>
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {participant.user_name}
+                          </Typography>
+                        </Stack>
 
-                      {participant.exercises && participant.exercises.length > 0 ? (
-                        <div className="space-y-2 ml-13">
-                          {participant.exercises.map((exercise, eIdx) => (
-                            <div key={eIdx} className="border-l-2 border-indigo-500 pl-3">
-                              <p className="text-sm font-semibold text-gray-900">{exercise.exercise_name}</p>
-                              <div className="text-xs text-gray-600 mt-1 space-y-0.5">
-                                {exercise.sets.map((set, sIdx) => (
-                                  <div key={sIdx}>
-                                    Set {set.set_number}: {set.weight}kg × {set.reps} reps
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
+                        {participant.exercises && participant.exercises.length > 0 ? (
+                          <Stack spacing={1.5} sx={{ ml: 6.5 }}>
+                            {participant.exercises.map((exercise, eIdx) => (
+                              <Box 
+                                key={eIdx} 
+                                sx={{ 
+                                  borderLeft: 3,
+                                  borderColor: 'primary.main',
+                                  pl: 2,
+                                }}
+                              >
+                                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                  {exercise.exercise_name}
+                                </Typography>
+                                <Stack spacing={0.25}>
+                                  {exercise.sets.map((set, sIdx) => (
+                                    <Typography key={sIdx} variant="caption" sx={{ color: 'text.secondary' }}>
+                                      Set {set.set_number}: {set.weight}kg × {set.reps} reps
+                                    </Typography>
+                                  ))}
+                                </Stack>
+                              </Box>
+                            ))}
+                          </Stack>
+                        ) : null}
 
-                      {participant.notes && (
-                        <p className="text-sm text-gray-600 mt-2 ml-13 italic">{participant.notes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+                        {participant.notes && (
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: 'text.secondary',
+                              mt: 1.5,
+                              ml: 6.5,
+                              fontStyle: 'italic',
+                            }}
+                          >
+                            {participant.notes}
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
             ))
           )}
-        </div>
-      </main>
-    </div>
+        </Stack>
+      </Container>
+    </Box>
   )
 }
