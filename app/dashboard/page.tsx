@@ -654,11 +654,6 @@ export default function DashboardPage() {
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <div className="text-sm text-gray-600">
-                          {participant.duration && <span>{participant.duration} min</span>}
-                          {participant.intensity && <span> • Intensity: {participant.intensity}/10</span>}
-                        </div>
                       )}
 
                       {participant.notes && (
