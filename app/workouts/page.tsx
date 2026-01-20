@@ -398,21 +398,21 @@ export default function WorkoutsPage() {
   if (!currentUser || !mounted) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-md-background">
+      <header className="bg-md-surface md-elevation-1 border-b border-md-outline/20 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/dashboard')}
-              className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+              className="text-sm text-md-on-surface-variant hover:text-md-on-surface font-medium md-transition"
             >
               ← Back to Dashboard
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">Workout Tracker</h1>
+            <h1 className="text-2xl font-bold text-md-on-surface">Workout Tracker</h1>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 relative rounded-full overflow-hidden">
+              <div className="w-8 h-8 relative rounded-full overflow-hidden md-elevation-1">
                 <Image 
                   src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR} 
                   alt={currentUser.name}
@@ -421,11 +421,11 @@ export default function WorkoutsPage() {
                   className="object-cover"
                 />
               </div>
-              <span className="text-sm font-medium text-gray-700">{currentUser.name}</span>
+              <span className="text-sm font-medium text-md-on-surface">{currentUser.name}</span>
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-sm text-md-on-surface-variant hover:text-md-on-surface md-transition"
             >
               Switch Profile
             </button>
@@ -436,18 +436,18 @@ export default function WorkoutsPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm text-gray-600 mb-1">Days in Last 30</h3>
-            <p className="text-4xl font-bold text-indigo-600">{getGymDaysLast30()}</p>
+          <div className="bg-md-surface rounded-md-lg md-elevation-1 p-6">
+            <h3 className="text-sm text-md-on-surface-variant mb-1">Days in Last 30</h3>
+            <p className="text-4xl font-bold text-md-primary">{getGymDaysLast30()}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm text-gray-600 mb-1">Total Workouts</h3>
-            <p className="text-4xl font-bold text-gray-900">
+          <div className="bg-md-surface rounded-md-lg md-elevation-1 p-6">
+            <h3 className="text-sm text-md-on-surface-variant mb-1">Total Workouts</h3>
+            <p className="text-4xl font-bold text-md-on-surface">
               {sessions.filter(s => s.participants?.some((p: any) => p.user_id === currentUser?.id)).length}
             </p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm text-gray-600 mb-1">Exercises Tracked</h3>
+          <div className="bg-md-surface rounded-md-lg md-elevation-1 p-6">
+            <h3 className="text-sm text-md-on-surface-variant mb-1">Exercises Tracked</h3>
             <p className="text-4xl font-bold text-gray-900">{allExercises.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">

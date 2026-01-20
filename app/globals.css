@@ -3,25 +3,65 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  /* Material You Color Tokens */
+  --md-primary: 103 80 164; /* Indigo */
+  --md-on-primary: 255 255 255;
+  --md-primary-container: 234 221 255;
+  --md-on-primary-container: 33 0 94;
+  
+  --md-secondary: 98 91 113;
+  --md-on-secondary: 255 255 255;
+  --md-secondary-container: 232 222 248;
+  --md-on-secondary-container: 30 25 43;
+  
+  --md-tertiary: 125 82 96;
+  --md-on-tertiary: 255 255 255;
+  --md-tertiary-container: 255 216 228;
+  --md-on-tertiary-container: 55 11 30;
+  
+  --md-surface: 254 247 255;
+  --md-on-surface: 28 27 31;
+  --md-surface-variant: 231 224 236;
+  --md-on-surface-variant: 73 69 79;
+  
+  --md-background: 254 247 255;
+  --md-on-background: 28 27 31;
+  
+  --md-error: 186 26 26;
+  --md-on-error: 255 255 255;
+  
+  --md-outline: 121 116 126;
+  --md-shadow: 0 0 0;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: rgb(var(--md-on-background));
+  background: rgb(var(--md-background));
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+}
+
+/* Material You Elevation Shadows */
+.md-elevation-1 {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+}
+
+.md-elevation-2 {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+}
+
+.md-elevation-3 {
+  box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.md-elevation-4 {
+  box-shadow: 0 6px 10px 4px rgba(0, 0, 0, 0.15), 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Material You Animations */
+.md-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-ripple:active {
+  transform: scale(0.98);
 }

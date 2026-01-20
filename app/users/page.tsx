@@ -165,32 +165,32 @@ export default function UserSelectionPage() {
 
   if (isRedirecting) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen bg-md-background flex items-center justify-center">
+        <div className="text-md-on-background text-xl">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-md-background flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">Training Tracker</h1>
-          <p className="text-indigo-100 text-lg">Select your profile or create a new one</p>
+          <h1 className="text-5xl font-bold text-md-primary mb-2">Training Tracker</h1>
+          <p className="text-md-on-surface-variant text-lg">Select your profile or create a new one</p>
         </div>
 
         {!showCreateForm ? (
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="bg-md-surface rounded-md-xl md-elevation-2 p-8">
             {users.length > 0 && (
               <>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Select Your Profile</h2>
+                  <h2 className="text-2xl font-bold text-md-on-surface">Select Your Profile</h2>
                   <button
                     onClick={() => setEditMode(!editMode)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                    className={`px-4 py-2 rounded-md-full text-sm font-medium md-transition md-ripple ${
                       editMode 
-                        ? 'bg-gray-200 text-gray-700' 
-                        : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                        ? 'bg-md-surface-variant text-md-on-surface-variant' 
+                        : 'bg-md-secondary-container text-md-on-primary-container hover:md-elevation-1'
                     }`}
                   >
                     {editMode ? 'Done' : 'Edit Profiles'}
@@ -202,13 +202,13 @@ export default function UserSelectionPage() {
                       <button
                         onClick={() => handleSelectUser(user)}
                         disabled={editMode}
-                        className={`w-full flex flex-col items-center p-6 rounded-xl border-2 transition-all ${
+                        className={`w-full flex flex-col items-center p-6 rounded-md-lg border-2 md-transition md-ripple ${
                           editMode 
-                            ? 'border-gray-200 cursor-default' 
-                            : 'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50'
+                            ? 'border-md-outline/30 cursor-default' 
+                            : 'border-md-outline/30 hover:border-md-primary hover:bg-md-primary-container/50 md-elevation-1 hover:md-elevation-2'
                         }`}
                       >
-                        <div className="w-20 h-20 mb-3 relative rounded-full overflow-hidden">
+                        <div className="w-20 h-20 mb-3 relative rounded-full overflow-hidden md-elevation-2">
                           <Image 
                             src={isValidImagePath(user.avatar) ? user.avatar : DEFAULT_AVATAR} 
                             alt={user.name}
@@ -217,13 +217,13 @@ export default function UserSelectionPage() {
                           className="object-cover"
                         />
                       </div>
-                      <span className="font-semibold text-gray-800">{user.name}</span>
+                      <span className="font-semibold text-md-on-surface">{user.name}</span>
                     </button>
                     {editMode && (
                       <div className="absolute top-2 right-2 flex gap-1">
                         <button
                           onClick={() => handleEditUser(user)}
-                          className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg"
+                          className="p-2 bg-md-primary text-md-on-primary rounded-md-full hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
                           title="Edit profile"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +232,7 @@ export default function UserSelectionPage() {
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id)}
-                          className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
+                          className="p-2 bg-md-error text-md-on-error rounded-md-full hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
                           title="Delete profile"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,10 +244,10 @@ export default function UserSelectionPage() {
                   </div>
                   ))}
                 </div>
-                <div className="border-t pt-6">
+                <div className="border-t border-md-outline/20 pt-6">
                   <button
                     onClick={() => setShowCreateForm(true)}
-                    className="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+                    className="w-full py-4 bg-md-primary text-md-on-primary rounded-md-full font-semibold hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
                   >
                     + Create New Profile
                   </button>
@@ -257,11 +257,11 @@ export default function UserSelectionPage() {
 
             {users.length === 0 && (
               <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome!</h2>
-                <p className="text-gray-600 mb-6">Let's create your first profile</p>
+                <h2 className="text-2xl font-bold text-md-on-surface mb-4">Welcome!</h2>
+                <p className="text-md-on-surface-variant mb-6">Let's create your first profile</p>
                 <button
                   onClick={() => setShowCreateForm(true)}
-                  className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+                  className="px-8 py-4 bg-md-primary text-md-on-primary rounded-md-full font-semibold hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
                 >
                   Create Profile
                 </button>
@@ -269,11 +269,11 @@ export default function UserSelectionPage() {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Your Profile</h2>
+          <div className="bg-md-surface rounded-md-xl md-elevation-2 p-8">
+            <h2 className="text-2xl font-bold text-md-on-surface mb-6">{editingUser ? 'Edit Profile' : 'Create Your Profile'}</h2>
             <form onSubmit={handleCreateUser} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-md-on-surface-variant mb-2">
                   Your Name
                 </label>
                 <input
@@ -282,12 +282,12 @@ export default function UserSelectionPage() {
                   placeholder="Enter your name"
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  className="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 text-md-on-surface bg-md-surface border-2 border-md-outline/40 rounded-md-md focus:outline-none focus:border-md-primary md-transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-md-on-surface-variant mb-3">
                   Choose Your Avatar
                 </label>
                 <div className="grid grid-cols-5 md:grid-cols-6 gap-2">
@@ -296,10 +296,10 @@ export default function UserSelectionPage() {
                       key={avatar}
                       type="button"
                       onClick={() => setSelectedAvatar(avatar)}
-                      className={`relative w-16 h-16 p-1 rounded-lg border-2 transition-all overflow-hidden ${
+                      className={`relative w-16 h-16 p-1 rounded-md-md border-2 md-transition overflow-hidden ${
                         selectedAvatar === avatar
-                          ? 'border-indigo-500 bg-indigo-50 scale-110'
-                          : 'border-gray-200 hover:border-indigo-300'
+                          ? 'border-md-primary md-elevation-2 scale-110'
+                          : 'border-md-outline/30 hover:border-md-primary/50'
                       }`}
                     >
                       <Image 
@@ -318,17 +318,17 @@ export default function UserSelectionPage() {
                 {users.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setShowCreateForm(false)}
-                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                    onClick={() => { setShowCreateForm(false); setEditingUser(null); }}
+                    className="flex-1 py-3 border-2 border-md-outline/40 text-md-on-surface rounded-md-full font-semibold hover:bg-md-surface-variant/30 md-transition md-ripple"
                   >
                     Cancel
                   </button>
                 )}
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+                  className="flex-1 py-4 bg-md-primary text-md-on-primary rounded-md-full font-semibold hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
                 >
-                  Create Profile
+                  {editingUser ? 'Save Changes' : 'Create Profile'}
                 </button>
               </div>
             </form>
