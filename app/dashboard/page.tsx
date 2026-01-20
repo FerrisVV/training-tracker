@@ -653,7 +653,7 @@ export default function DashboardPage() {
                             </div>
                           ))}
                         </div>
-                      )}
+                      ) : null}
 
                       {participant.notes && (
                         <p className="text-sm text-gray-600 mt-2 ml-13 italic">{participant.notes}</p>
