@@ -37,10 +37,13 @@ export default function UserSelectionPage() {
   const [newUserName, setNewUserName] = useState('')
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PLACEHOLDERS[0])
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
 
   // No auto-redirect - user is here to select/switch profiles
 
   const handleSelectUser = (user: User) => {
+    if (editMode) return // Prevent selection in edit mode
     setIsRedirecting(true)
     // Update localStorage first
     localStorage.setItem('current_user', JSON.stringify(user))
@@ -50,8 +53,70 @@ export default function UserSelectionPage() {
     }, 150)
   }
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this profile?')) return
+
+    // Delete from Supabase
+    await supabase.from('shared_users').delete().eq('id', userId)
+
+    // Update local storage
+    const updatedUsers = users.filter(u => u.id !== userId)
+    setUsers(updatedUsers)
+    
+    // If deleting current user, clear it
+    if (currentUser?.id === userId) {
+      localStorage.removeItem('current_user')
+      setCurrentUser(null)
+    }
+  }
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user)
+    setNewUserName(user.name)
+    setSelectedAvatar(user.avatar)
+    setShowCreateForm(true)
+  }
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser || !newUserName.trim()) return
+
+    const updatedUser: User = {
+      ...editingUser,
+      name: newUserName.trim(),
+      avatar: selectedAvatar,
+    }
+
+    // Update in Supabase
+    await supabase.from('shared_users')
+      .update({ name: updatedUser.name, avatar: updatedUser.avatar })
+      .eq('id', editingUser.id)
+
+    // Update local storage
+    const updatedUsers = users.map(u => u.id === editingUser.id ? updatedUser : u)
+    setUsers(updatedUsers)
+
+    // Update current user if it's the one being edited
+    if (currentUser?.id === editingUser.id) {
+      setCurrentUser(updatedUser)
+    }
+
+    // Reset form
+    setEditingUser(null)
+    setNewUserName('')
+    setSelectedAvatar(AVATAR_PLACEHOLDERS[0])
+    setShowCreateForm(false)
+    setEditMode(false)
+  }
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // If editing, use save edit function instead
+    if (editingUser) {
+      return handleSaveEdit(e)
+    }
+
     if (!newUserName.trim()) return
 
     const newUser: User = {
@@ -101,18 +166,35 @@ export default function UserSelectionPage() {
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             {users.length > 0 && (
               <>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Select Your Profile</h2>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Select Your Profile</h2>
+                  <button
+                    onClick={() => setEditMode(!editMode)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      editMode 
+                        ? 'bg-gray-200 text-gray-700' 
+                        : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                    }`}
+                  >
+                    {editMode ? 'Done' : 'Edit Profiles'}
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                   {users.map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => handleSelectUser(user)}
-                      className="flex flex-col items-center p-6 rounded-xl border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all"
-                    >
-                      <div className="w-20 h-20 mb-3 relative rounded-full overflow-hidden">
-                        <Image 
-                          src={isValidImagePath(user.avatar) ? user.avatar : DEFAULT_AVATAR} 
-                          alt={user.name}
+                    <div key={user.id} className="relative">
+                      <button
+                        onClick={() => handleSelectUser(user)}
+                        disabled={editMode}
+                        className={`w-full flex flex-col items-center p-6 rounded-xl border-2 transition-all ${
+                          editMode 
+                            ? 'border-gray-200 cursor-default' 
+                            : 'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50'
+                        }`}
+                      >
+                        <div className="w-20 h-20 mb-3 relative rounded-full overflow-hidden">
+                          <Image 
+                            src={isValidImagePath(user.avatar) ? user.avatar : DEFAULT_AVATAR} 
+                            alt={user.name}
                           fill
                           sizes="80px"
                           className="object-cover"
@@ -120,6 +202,29 @@ export default function UserSelectionPage() {
                       </div>
                       <span className="font-semibold text-gray-800">{user.name}</span>
                     </button>
+                    {editMode && (
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-lg"
+                          title="Edit profile"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
+                          title="Delete profile"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   ))}
                 </div>
                 <div className="border-t pt-6">
