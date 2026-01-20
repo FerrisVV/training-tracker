@@ -151,7 +151,9 @@ export default function WorkoutsPage() {
     const oneWeekAgo = new Date()
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
     
-    const trainedParts = new Set<string>()
+    const bodyPartCounts: Record<string, number> = {}
+    allBodyParts.forEach(part => bodyPartCounts[part] = 0)
+    
     sessions.forEach(session => {
       if (new Date(session.date) >= oneWeekAgo) {
         session.participants?.forEach((p: any) => {
@@ -159,25 +161,25 @@ export default function WorkoutsPage() {
             p.exercises?.forEach((ex: any) => {
               const exerciseLower = ex.exercise_name.toLowerCase()
               if (exerciseLower.includes('chest') || exerciseLower.includes('bench') || exerciseLower.includes('press')) {
-                trainedParts.add('Chest')
+                bodyPartCounts['Chest']++
               }
               if (exerciseLower.includes('back') || exerciseLower.includes('pull') || exerciseLower.includes('row') || exerciseLower.includes('deadlift')) {
-                trainedParts.add('Back')
+                bodyPartCounts['Back']++
               }
               if (exerciseLower.includes('shoulder') || exerciseLower.includes('lateral') || exerciseLower.includes('overhead')) {
-                trainedParts.add('Shoulders')
+                bodyPartCounts['Shoulders']++
               }
               if (exerciseLower.includes('bicep') || exerciseLower.includes('tricep') || exerciseLower.includes('curl') || exerciseLower.includes('arm')) {
-                trainedParts.add('Arms')
+                bodyPartCounts['Arms']++
               }
               if (exerciseLower.includes('squat') || exerciseLower.includes('leg') || exerciseLower.includes('lunge') || exerciseLower.includes('calf')) {
-                trainedParts.add('Legs')
+                bodyPartCounts['Legs']++
               }
               if (exerciseLower.includes('core') || exerciseLower.includes('plank') || exerciseLower.includes('abs') || exerciseLower.includes('crunch')) {
-                trainedParts.add('Core')
+                bodyPartCounts['Core']++
               }
               if (exerciseLower.includes('cardio') || exerciseLower.includes('run') || exerciseLower.includes('bike')) {
-                trainedParts.add('Cardio')
+                bodyPartCounts['Cardio']++
               }
             })
           }
@@ -185,9 +187,12 @@ export default function WorkoutsPage() {
       }
     })
     
+    const maxCount = Math.max(...Object.values(bodyPartCounts), 1)
+    
     return allBodyParts.map(part => ({
       name: part,
-      trained: trainedParts.has(part)
+      count: bodyPartCounts[part],
+      intensity: bodyPartCounts[part] / maxCount // 0 to 1
     }))
   }
 
@@ -490,19 +495,36 @@ export default function WorkoutsPage() {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">💪 Body Parts This Week</h2>
             <div className="grid grid-cols-2 gap-3">
-              {bodyPartHeatMap.map(part => (
-                <div
-                  key={part.name}
-                  className={`px-4 py-3 rounded-lg text-center font-medium transition-all ${
-                    part.trained 
-                      ? 'bg-green-100 text-green-700 border-2 border-green-300' 
-                      : 'bg-red-50 text-red-400 border-2 border-red-200'
-                  }`}
-                >
-                  {part.name}
-                  {part.trained && <span className="ml-2">✓</span>}
-                </div>
-              ))}
+              {bodyPartHeatMap.map(part => {
+                const getHeatMapColor = (intensity: number) => {
+                  if (intensity === 0) return 'bg-gray-100 text-gray-400 border-gray-200'
+                  if (intensity < 0.33) return 'bg-yellow-100 text-yellow-700 border-yellow-300'
+                  if (intensity < 0.66) return 'bg-orange-100 text-orange-700 border-orange-300'
+                  return 'bg-red-100 text-red-700 border-red-300'
+                }
+                
+                return (
+                  <div
+                    key={part.name}
+                    className={`px-4 py-3 rounded-lg text-center font-medium transition-all border-2 ${getHeatMapColor(part.intensity)}`}
+                  >
+                    <div>{part.name}</div>
+                    {part.count > 0 && (
+                      <div className="text-xs mt-1 opacity-75">{part.count} exercise{part.count !== 1 ? 's' : ''}</div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-600">
+              <span>Less</span>
+              <div className="flex gap-1">
+                <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200"></div>
+                <div className="w-6 h-6 rounded bg-yellow-100 border border-yellow-300"></div>
+                <div className="w-6 h-6 rounded bg-orange-100 border border-orange-300"></div>
+                <div className="w-6 h-6 rounded bg-red-100 border border-red-300"></div>
+              </div>
+              <span>More</span>
             </div>
           </div>
 
