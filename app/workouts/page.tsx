@@ -36,6 +36,9 @@ export default function WorkoutsPage() {
   const [selectedExercise, setSelectedExercise] = useState<string>('')
   const [sessionLimit, setSessionLimit] = useState<number>(20)
   const [showAllTime, setShowAllTime] = useState<boolean>(false)
+  const [selectedLeaderboardExercise, setSelectedLeaderboardExercise] = useState<string>('')
+  const [comparisonExercise, setComparisonExercise] = useState<string>('')
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([])
 
   useEffect(() => {
     setMounted(true)
@@ -142,14 +145,250 @@ export default function WorkoutsPage() {
     window.location.href = '/users'
   }
 
+  // Body Part Heat Map - Get trained body parts this week
+  const getBodyPartHeatMap = () => {
+    const allBodyParts = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Cardio']
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+    
+    const trainedParts = new Set<string>()
+    sessions.forEach(session => {
+      if (new Date(session.date) >= oneWeekAgo) {
+        session.participants?.forEach((p: any) => {
+          if (p.user_id === currentUser?.id) {
+            p.exercises?.forEach((ex: any) => {
+              const exerciseLower = ex.exercise_name.toLowerCase()
+              if (exerciseLower.includes('chest') || exerciseLower.includes('bench') || exerciseLower.includes('press')) {
+                trainedParts.add('Chest')
+              }
+              if (exerciseLower.includes('back') || exerciseLower.includes('pull') || exerciseLower.includes('row') || exerciseLower.includes('deadlift')) {
+                trainedParts.add('Back')
+              }
+              if (exerciseLower.includes('shoulder') || exerciseLower.includes('lateral') || exerciseLower.includes('overhead')) {
+                trainedParts.add('Shoulders')
+              }
+              if (exerciseLower.includes('bicep') || exerciseLower.includes('tricep') || exerciseLower.includes('curl') || exerciseLower.includes('arm')) {
+                trainedParts.add('Arms')
+              }
+              if (exerciseLower.includes('squat') || exerciseLower.includes('leg') || exerciseLower.includes('lunge') || exerciseLower.includes('calf')) {
+                trainedParts.add('Legs')
+              }
+              if (exerciseLower.includes('core') || exerciseLower.includes('plank') || exerciseLower.includes('abs') || exerciseLower.includes('crunch')) {
+                trainedParts.add('Core')
+              }
+              if (exerciseLower.includes('cardio') || exerciseLower.includes('run') || exerciseLower.includes('bike')) {
+                trainedParts.add('Cardio')
+              }
+            })
+          }
+        })
+      }
+    })
+    
+    return allBodyParts.map(part => ({
+      name: part,
+      trained: trainedParts.has(part)
+    }))
+  }
+
+  // Exercise Balance - Categorize into Push/Pull/Legs
+  const getExerciseBalance = () => {
+    const categories = { Push: 0, Pull: 0, Legs: 0, Other: 0 }
+    
+    sessions.forEach(session => {
+      session.participants?.forEach((p: any) => {
+        if (p.user_id === currentUser?.id) {
+          p.exercises?.forEach((ex: any) => {
+            const exerciseLower = ex.exercise_name.toLowerCase()
+            if (exerciseLower.includes('chest') || exerciseLower.includes('bench') || exerciseLower.includes('press') || 
+                exerciseLower.includes('shoulder') || exerciseLower.includes('tricep') || exerciseLower.includes('overhead')) {
+              categories.Push++
+            } else if (exerciseLower.includes('back') || exerciseLower.includes('pull') || exerciseLower.includes('row') || 
+                       exerciseLower.includes('bicep') || exerciseLower.includes('curl') || exerciseLower.includes('deadlift')) {
+              categories.Pull++
+            } else if (exerciseLower.includes('squat') || exerciseLower.includes('leg') || exerciseLower.includes('lunge') || exerciseLower.includes('calf')) {
+              categories.Legs++
+            } else {
+              categories.Other++
+            }
+          })
+        }
+      })
+    })
+    
+    const total = categories.Push + categories.Pull + categories.Legs + categories.Other
+    return {
+      categories,
+      percentages: {
+        Push: total > 0 ? Math.round((categories.Push / total) * 100) : 0,
+        Pull: total > 0 ? Math.round((categories.Pull / total) * 100) : 0,
+        Legs: total > 0 ? Math.round((categories.Legs / total) * 100) : 0,
+        Other: total > 0 ? Math.round((categories.Other / total) * 100) : 0,
+      }
+    }
+  }
+
+  // Achievement Badges
+  const getAchievements = () => {
+    const achievements = []
+    
+    // Calculate streak
+    const sortedDates = sessions
+      .filter(s => s.participants?.some((p: any) => p.user_id === currentUser?.id))
+      .map(s => s.date)
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    
+    const uniqueDates = [...new Set(sortedDates)]
+    let currentStreak = 0
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    for (let i = 0; i < uniqueDates.length; i++) {
+      const sessionDate = new Date(uniqueDates[i])
+      sessionDate.setHours(0, 0, 0, 0)
+      const diffDays = Math.floor((today.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (diffDays === currentStreak || (i === 0 && diffDays <= 1)) {
+        currentStreak++
+      } else {
+        break
+      }
+    }
+    
+    if (currentStreak >= 7) achievements.push({ name: '7-Day Streak', icon: '🔥', color: 'orange' })
+    if (currentStreak >= 30) achievements.push({ name: '30-Day Streak', icon: '💪', color: 'red' })
+    
+    // Total workouts
+    const totalWorkouts = sessions.filter(s => s.participants?.some((p: any) => p.user_id === currentUser?.id)).length
+    if (totalWorkouts >= 10) achievements.push({ name: '10 Workouts', icon: '⭐', color: 'yellow' })
+    if (totalWorkouts >= 50) achievements.push({ name: '50 Workouts', icon: '🌟', color: 'yellow' })
+    if (totalWorkouts >= 100) achievements.push({ name: '100 Workouts', icon: '💯', color: 'purple' })
+    
+    // Check for 100kg+ lifts
+    let has100kgLift = false
+    sessions.forEach(session => {
+      session.participants?.forEach((p: any) => {
+        if (p.user_id === currentUser?.id) {
+          p.exercises?.forEach((ex: any) => {
+            ex.sets?.forEach((set: ExerciseSet) => {
+              if (set.weight >= 100) has100kgLift = true
+            })
+          })
+        }
+      })
+    })
+    if (has100kgLift) achievements.push({ name: '100kg Club', icon: '🏋️', color: 'blue' })
+    
+    // Check for variety (10+ different exercises)
+    if (allExercises.length >= 10) achievements.push({ name: 'Variety King', icon: '🎯', color: 'green' })
+    
+    return achievements
+  }
+
+  // Leaderboards - Get top lifters for an exercise across all users
+  const getLeaderboard = (exerciseName: string) => {
+    const userMaxWeights: Record<string, { name: string, avatar: string, maxWeight: number, date: string }> = {}
+    
+    sessions.forEach(session => {
+      session.participants?.forEach((p: any) => {
+        const exercise = p.exercises?.find((ex: any) => ex.exercise_name === exerciseName)
+        if (exercise) {
+          const maxWeight = Math.max(...exercise.sets.map((s: ExerciseSet) => s.weight))
+          if (!userMaxWeights[p.user_id] || maxWeight > userMaxWeights[p.user_id].maxWeight) {
+            userMaxWeights[p.user_id] = {
+              name: p.user_name,
+              avatar: p.user_avatar,
+              maxWeight,
+              date: session.date
+            }
+          }
+        }
+      })
+    })
+    
+    return Object.values(userMaxWeights)
+      .sort((a, b) => b.maxWeight - a.maxWeight)
+      .slice(0, 10)
+  }
+
+  // Progress Comparison - Get exercise data for multiple users
+  const getComparisonData = (exerciseName: string, userIds: string[]) => {
+    const userData: Record<string, { name: string, avatar: string, sessions: { date: string, maxWeight: number }[] }> = {}
+    
+    sessions.forEach(session => {
+      session.participants?.forEach((p: any) => {
+        if (userIds.includes(p.user_id)) {
+          const exercise = p.exercises?.find((ex: any) => ex.exercise_name === exerciseName)
+          if (exercise) {
+            if (!userData[p.user_id]) {
+              userData[p.user_id] = { name: p.user_name, avatar: p.user_avatar, sessions: [] }
+            }
+            const maxWeight = Math.max(...exercise.sets.map((s: ExerciseSet) => s.weight))
+            userData[p.user_id].sessions.push({ date: session.date, maxWeight })
+          }
+        }
+      })
+    })
+    
+    return userData
+  }
+
+  // Personal Records - Get all PRs for current user
+  const getPersonalRecords = () => {
+    const prs: Record<string, { weight: number, date: string }> = {}
+    
+    allExercises.forEach(exerciseName => {
+      let maxWeight = 0
+      let maxDate = ''
+      
+      sessions.forEach(session => {
+        session.participants?.forEach((p: any) => {
+          if (p.user_id === currentUser?.id) {
+            const exercise = p.exercises?.find((ex: any) => ex.exercise_name === exerciseName)
+            if (exercise) {
+              const weight = Math.max(...exercise.sets.map((s: ExerciseSet) => s.weight))
+              if (weight > maxWeight) {
+                maxWeight = weight
+                maxDate = session.date
+              }
+            }
+          }
+        })
+      })
+      
+      if (maxWeight > 0) {
+        prs[exerciseName] = { weight: maxWeight, date: maxDate }
+      }
+    })
+    
+    return Object.entries(prs)
+      .sort((a, b) => b[1].weight - a[1].weight)
+  }
+
   const allExercises = getAllExercises()
   const topExercises = getTopExercises()
   const exerciseProgress = selectedExercise ? getExerciseProgress(selectedExercise) : null
+  const bodyPartHeatMap = getBodyPartHeatMap()
+  const exerciseBalance = getExerciseBalance()
+  const achievements = getAchievements()
+  const leaderboard = selectedLeaderboardExercise ? getLeaderboard(selectedLeaderboardExercise) : []
+  const comparisonData = comparisonExercise && selectedFriends.length > 0 
+    ? getComparisonData(comparisonExercise, [...selectedFriends, currentUser.id])
+    : {}
+  const personalRecords = getPersonalRecords()
 
   // Calculate max weight for chart scaling
   const maxWeightInData = exerciseProgress 
     ? Math.max(...exerciseProgress.sessions.map(s => s.max_weight), 0)
     : 0
+    
+  // Calculate max for comparison chart
+  const maxComparisonWeight = Object.values(comparisonData).reduce((max, user) => {
+    const userMax = Math.max(...user.sessions.map(s => s.maxWeight), 0)
+    return Math.max(max, userMax)
+  }, 0)
+
+  const userColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444']
 
   if (!currentUser || !mounted) return null
 
@@ -218,6 +457,342 @@ export default function WorkoutsPage() {
               }).length}
             </p>
           </div>
+        </div>
+
+        {/* Achievement Badges */}
+        {achievements.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🏆 Achievements</h2>
+            <div className="flex flex-wrap gap-3">
+              {achievements.map((achievement, idx) => (
+                <div 
+                  key={idx}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm ${
+                    achievement.color === 'orange' ? 'bg-orange-100 text-orange-700' :
+                    achievement.color === 'red' ? 'bg-red-100 text-red-700' :
+                    achievement.color === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
+                    achievement.color === 'purple' ? 'bg-purple-100 text-purple-700' :
+                    achievement.color === 'blue' ? 'bg-blue-100 text-blue-700' :
+                    'bg-green-100 text-green-700'
+                  }`}
+                >
+                  <span className="text-xl">{achievement.icon}</span>
+                  <span>{achievement.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Body Part Heat Map & Exercise Balance */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Body Part Heat Map */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">💪 Body Parts This Week</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {bodyPartHeatMap.map(part => (
+                <div
+                  key={part.name}
+                  className={`px-4 py-3 rounded-lg text-center font-medium transition-all ${
+                    part.trained 
+                      ? 'bg-green-100 text-green-700 border-2 border-green-300' 
+                      : 'bg-red-50 text-red-400 border-2 border-red-200'
+                  }`}
+                >
+                  {part.name}
+                  {part.trained && <span className="ml-2">✓</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Exercise Balance */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">⚖️ Exercise Balance</h2>
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-indigo-700">Push</span>
+                  <span className="text-sm font-bold text-indigo-700">{exerciseBalance.percentages.Push}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-indigo-600 h-3 rounded-full transition-all" 
+                    style={{ width: `${exerciseBalance.percentages.Push}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-green-700">Pull</span>
+                  <span className="text-sm font-bold text-green-700">{exerciseBalance.percentages.Pull}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-green-600 h-3 rounded-full transition-all" 
+                    style={{ width: `${exerciseBalance.percentages.Pull}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-orange-700">Legs</span>
+                  <span className="text-sm font-bold text-orange-700">{exerciseBalance.percentages.Legs}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-orange-600 h-3 rounded-full transition-all" 
+                    style={{ width: `${exerciseBalance.percentages.Legs}%` }}
+                  />
+                </div>
+              </div>
+              {exerciseBalance.percentages.Other > 0 && (
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700">Other</span>
+                    <span className="text-sm font-bold text-gray-700">{exerciseBalance.percentages.Other}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gray-600 h-3 rounded-full transition-all" 
+                      style={{ width: `${exerciseBalance.percentages.Other}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Personal Records */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">🎯 Personal Records</h2>
+          {personalRecords.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {personalRecords.slice(0, 9).map(([name, pr]) => (
+                <div key={name} className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
+                  <div className="text-sm font-medium text-gray-700 mb-1">{name}</div>
+                  <div className="text-2xl font-bold text-indigo-600">{pr.weight} kg</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {new Date(pr.date).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">No personal records yet</p>
+          )}
+        </div>
+
+        {/* Leaderboards */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">🏅 Leaderboards</h2>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Exercise</label>
+            <select
+              value={selectedLeaderboardExercise}
+              onChange={(e) => setSelectedLeaderboardExercise(e.target.value)}
+              className="w-full md:w-1/2 px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
+            >
+              <option value="">Choose an exercise...</option>
+              {allExercises.map(ex => (
+                <option key={ex} value={ex}>{ex}</option>
+              ))}
+            </select>
+          </div>
+          {leaderboard.length > 0 ? (
+            <div className="space-y-2">
+              {leaderboard.map((entry, idx) => (
+                <div 
+                  key={idx}
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    idx === 0 ? 'bg-yellow-50 border-2 border-yellow-300' :
+                    idx === 1 ? 'bg-gray-50 border-2 border-gray-300' :
+                    idx === 2 ? 'bg-orange-50 border-2 border-orange-300' :
+                    'bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`text-2xl font-bold ${
+                      idx === 0 ? 'text-yellow-600' :
+                      idx === 1 ? 'text-gray-600' :
+                      idx === 2 ? 'text-orange-600' :
+                      'text-gray-400'
+                    }`}>
+                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                    </span>
+                    <div className="w-10 h-10 relative rounded-full overflow-hidden">
+                      <Image 
+                        src={isValidImagePath(entry.avatar) ? entry.avatar : DEFAULT_AVATAR}
+                        alt={entry.name}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <span className="font-medium text-gray-900">{entry.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-indigo-600">{entry.maxWeight} kg</div>
+                    <div className="text-xs text-gray-500">{new Date(entry.date).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : selectedLeaderboardExercise ? (
+            <p className="text-gray-500 text-center py-4">No data found for this exercise</p>
+          ) : (
+            <p className="text-gray-500 text-center py-4">Select an exercise to view leaderboard</p>
+          )}
+        </div>
+
+        {/* Progress Comparison */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">📊 Compare with Friends</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Exercise</label>
+              <select
+                value={comparisonExercise}
+                onChange={(e) => setComparisonExercise(e.target.value)}
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md"
+              >
+                <option value="">Choose an exercise...</option>
+                {allExercises.map(ex => (
+                  <option key={ex} value={ex}>{ex}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Friends to Compare</label>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {users.filter(u => u.id !== currentUser?.id).map(user => (
+                  <button
+                    key={user.id}
+                    onClick={() => {
+                      if (selectedFriends.includes(user.id)) {
+                        setSelectedFriends(selectedFriends.filter(id => id !== user.id))
+                      } else {
+                        setSelectedFriends([...selectedFriends, user.id])
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                      selectedFriends.includes(user.id)
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {user.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {Object.keys(comparisonData).length > 0 ? (
+            <div>
+              <div className="relative h-64 border-l-2 border-b-2 border-gray-300 mb-4">
+                {/* Y-axis labels */}
+                <div className="absolute -left-12 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-600">
+                  <span>{Math.ceil(maxComparisonWeight)} kg</span>
+                  <span>{Math.ceil(maxComparisonWeight * 0.75)} kg</span>
+                  <span>{Math.ceil(maxComparisonWeight * 0.5)} kg</span>
+                  <span>{Math.ceil(maxComparisonWeight * 0.25)} kg</span>
+                  <span>0 kg</span>
+                </div>
+
+                {/* Chart area with lines */}
+                <div className="absolute inset-0 pl-2">
+                  {Object.values(comparisonData).map((userData, userIdx) => {
+                    const sortedSessions = userData.sessions.sort((a, b) => 
+                      new Date(a.date).getTime() - new Date(b.date).getTime()
+                    )
+                    return sortedSessions.map((session, idx) => {
+                      if (idx === 0) return null
+                      const prevSession = sortedSessions[idx - 1]
+                      const x1 = (idx - 1) / (sortedSessions.length - 1) * 100
+                      const x2 = idx / (sortedSessions.length - 1) * 100
+                      const y1 = 100 - (prevSession.maxWeight / maxComparisonWeight * 100)
+                      const y2 = 100 - (session.maxWeight / maxComparisonWeight * 100)
+                      
+                      return (
+                        <svg 
+                          key={`${userIdx}-${idx}`}
+                          className="absolute inset-0 pointer-events-none"
+                          style={{ width: '100%', height: '100%' }}
+                        >
+                          <line
+                            x1={`${x1}%`}
+                            y1={`${y1}%`}
+                            x2={`${x2}%`}
+                            y2={`${y2}%`}
+                            stroke={userColors[userIdx % userColors.length]}
+                            strokeWidth="3"
+                          />
+                        </svg>
+                      )
+                    })
+                  })}
+                  
+                  {/* Data points */}
+                  {Object.values(comparisonData).map((userData, userIdx) => {
+                    const sortedSessions = userData.sessions.sort((a, b) => 
+                      new Date(a.date).getTime() - new Date(b.date).getTime()
+                    )
+                    return sortedSessions.map((session, idx) => {
+                      const x = idx / (sortedSessions.length - 1) * 100
+                      const y = 100 - (session.maxWeight / maxComparisonWeight * 100)
+                      
+                      return (
+                        <div
+                          key={`point-${userIdx}-${idx}`}
+                          className="absolute w-3 h-3 rounded-full -translate-x-1/2 -translate-y-1/2 group"
+                          style={{
+                            left: `${x}%`,
+                            top: `${y}%`,
+                            backgroundColor: userColors[userIdx % userColors.length]
+                          }}
+                          title={`${userData.name}: ${session.maxWeight}kg on ${new Date(session.date).toLocaleDateString()}`}
+                        >
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                            {userData.name}: {session.maxWeight} kg
+                            <div className="text-gray-400">{new Date(session.date).toLocaleDateString()}</div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  })}
+                </div>
+              </div>
+              
+              {/* Legend */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                {Object.entries(comparisonData).map(([userId, userData], idx) => (
+                  <div key={userId} className="flex items-center gap-2">
+                    <div 
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: userColors[idx % userColors.length] }}
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 relative rounded-full overflow-hidden">
+                        <Image 
+                          src={isValidImagePath(userData.avatar) ? userData.avatar : DEFAULT_AVATAR}
+                          alt={userData.name}
+                          fill
+                          sizes="24px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">{userData.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : comparisonExercise && selectedFriends.length > 0 ? (
+            <p className="text-gray-500 text-center py-4">No comparison data available</p>
+          ) : (
+            <p className="text-gray-500 text-center py-4">Select an exercise and friends to compare progress</p>
+          )}
         </div>
 
         {/* Top Exercises */}
