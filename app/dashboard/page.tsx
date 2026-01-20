@@ -179,7 +179,6 @@ export default function DashboardPage() {
       console.error('Insert error:', error)
       alert(`Error saving session: ${error.message}`)
       return
-      return
     }
 
     setFormData({
