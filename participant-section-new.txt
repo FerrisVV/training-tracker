@@ -1,0 +1,162 @@
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-medium text-gray-700">Participants</label>
+                  <button
+                    type="button"
+                    onClick={addParticipant}
+                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
+                    + Add Person
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  {participants.map((participant, pIdx) => (
+                    <div key={pIdx} className="border-2 border-gray-300 rounded-lg p-4 bg-white">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-10 h-10 relative rounded-full overflow-hidden flex-shrink-0">
+                            <Image 
+                              src={participant.user_avatar || '/avatars/02e5ef8fa00e64c8881597fbf765ca2f.jpg'} 
+                              alt={participant.user_name || 'User'}
+                              fill
+                              sizes="40px"
+                              className="object-cover"
+                            />
+                          </div>
+                          <select
+                            value={participant.user_id}
+                            onChange={(e) => {
+                              const user = users.find(u => u.id === e.target.value)
+                              if (user) selectUserForParticipant(pIdx, user)
+                            }}
+                            required
+                            className="text-sm font-medium text-gray-900 border border-gray-300 rounded px-3 py-1 bg-white"
+                          >
+                            <option value="">Select person...</option>
+                            {users.map(user => (
+                              <option key={user.id} value={user.id}>{user.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {participants.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeParticipant(pIdx)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Remove Person
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Exercise List */}
+                      <div className="space-y-3 mb-3">
+                        {participant.exercises.map((exercise, eIdx) => (
+                          <div key={eIdx} className="border border-gray-200 rounded p-3 bg-gray-50">
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="font-semibold text-gray-900">{exercise.exercise_name}</h4>
+                              <button
+                                type="button"
+                                onClick={() => removeExerciseFromParticipant(pIdx, eIdx)}
+                                className="text-xs text-red-600 hover:text-red-800"
+                              >
+                                Remove Exercise
+                              </button>
+                            </div>
+                            
+                            {/* Sets */}
+                            <div className="space-y-2 mb-2">
+                              {exercise.sets.map((set, sIdx) => (
+                                <div key={sIdx} className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-600 w-12">Set {set.set_number}</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="2.5"
+                                    value={set.weight || ''}
+                                    onChange={(e) => updateSet(pIdx, eIdx, sIdx, 'weight', parseFloat(e.target.value) || 0)}
+                                    placeholder="Weight"
+                                    className="flex-1 px-2 py-1 text-sm text-gray-900 border border-gray-300 rounded"
+                                  />
+                                  <span className="text-xs text-gray-600">lbs x</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={set.reps || ''}
+                                    onChange={(e) => updateSet(pIdx, eIdx, sIdx, 'reps', parseInt(e.target.value) || 0)}
+                                    placeholder="Reps"
+                                    className="w-16 px-2 py-1 text-sm text-gray-900 border border-gray-300 rounded"
+                                  />
+                                  {exercise.sets.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeSetFromExercise(pIdx, eIdx, sIdx)}
+                                      className="text-red-500 hover:text-red-700 text-xs"
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            <button
+                              type="button"
+                              onClick={() => addSetToExercise(pIdx, eIdx)}
+                              className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                            >
+                              + Add Set
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Exercise */}
+                      {formData.body_part && (
+                        <div className="flex gap-2 mb-3">
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                addExerciseToParticipant(pIdx, e.target.value)
+                                e.target.value = ''
+                              }
+                            }}
+                            className="flex-1 text-sm text-gray-900 border border-gray-300 rounded px-2 py-1"
+                          >
+                            <option value="">+ Add Exercise</option>
+                            {getAvailableExercises(formData.body_part).map(ex => (
+                              <option key={ex} value={ex}>{ex}</option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const name = prompt('Enter custom exercise name:')
+                              if (name && name.trim()) {
+                                addCustomExercise(formData.body_part, name.trim())
+                                addExerciseToParticipant(pIdx, name.trim())
+                              }
+                            }}
+                            className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                          >
+                            Custom
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Notes */}
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Notes</label>
+                        <input
+                          type="text"
+                          value={participant.notes || ''}
+                          onChange={(e) => updateParticipant(pIdx, 'notes', e.target.value)}
+                          placeholder="Session notes..."
+                          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-md"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
