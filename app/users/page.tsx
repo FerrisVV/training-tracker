@@ -40,6 +40,23 @@ export default function UserSelectionPage() {
   const [editMode, setEditMode] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
 
+  // Load users from Supabase on mount
+  useEffect(() => {
+    const loadUsers = async () => {
+      const { data, error } = await supabase
+        .from('shared_users')
+        .select('*')
+        .eq('sync_code', syncCode)
+        .order('created_at', { ascending: true })
+
+      if (data && !error) {
+        setUsers(data as User[])
+      }
+    }
+
+    loadUsers()
+  }, [syncCode])
+
   // No auto-redirect - user is here to select/switch profiles
 
   const handleSelectUser = (user: User) => {
