@@ -349,34 +349,67 @@ export default function DashboardPage() {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar position="static" sx={{ bgcolor: 'background.paper', boxShadow: 1 }}>
         <Container maxWidth="lg">
-          <Toolbar sx={{ justifyContent: 'space-between', minHeight: '64px' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+          <Toolbar 
+            sx={{ 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              minHeight: { xs: 'auto', sm: '64px' },
+              py: { xs: 1.5, sm: 1 },
+              gap: { xs: 1.5, sm: 0 },
+            }}
+          >
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 700, 
+                color: 'text.primary',
+                fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                width: { xs: '100%', sm: 'auto' },
+                textAlign: { xs: 'center', sm: 'left' },
+              }}
+            >
               Training Tracker
             </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack 
+              direction="row" 
+              spacing={{ xs: 1, sm: 2 }} 
+              alignItems="center"
+              sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}
+            >
               <Button
                 onClick={() => router.push('/workouts')}
                 variant="outlined"
-                startIcon={<BarChartIcon />}
+                startIcon={<BarChartIcon sx={{ display: { xs: 'none', sm: 'inline' } }} />}
+                size="small"
                 sx={{
                   borderRadius: '20px',
                   textTransform: 'none',
                   transition: 'all 0.3s ease',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  px: { xs: 2, sm: 2 },
+                  minHeight: 36,
                   '&:hover': {
                     transform: 'translateY(-2px)',
                     boxShadow: 2,
                   },
                 }}
               >
-                View Workouts
+                Workouts
               </Button>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Avatar 
                   src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR}
                   alt={currentUser.name}
-                  sx={{ width: 32, height: 32 }}
+                  sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }}
                 />
-                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 500, 
+                    color: 'text.primary',
+                    display: { xs: 'none', sm: 'block' },
+                  }}
+                >
                   {currentUser.name}
                 </Typography>
               </Stack>
@@ -396,22 +429,40 @@ export default function DashboardPage() {
         </Container>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary' }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 2, sm: 3 } }}>
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          justifyContent="space-between" 
+          alignItems={{ xs: 'stretch', sm: 'center' }} 
+          sx={{ mb: { xs: 2, sm: 4 }, gap: { xs: 1.5, sm: 0 } }}
+        >
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700, 
+              color: 'text.primary',
+              fontSize: { xs: '1.5rem', sm: '2rem' },
+              textAlign: { xs: 'center', sm: 'left' },
+            }}
+          >
             Training Sessions
           </Typography>
           <Button
             onClick={() => setShowForm(!showForm)}
             variant="contained"
             startIcon={showForm ? null : <AddIcon />}
+            fullWidth={true}
             sx={{
               borderRadius: '20px',
               textTransform: 'none',
               px: 3,
-              py: 1.5,
+              py: { xs: 1.5, sm: 1.5 },
               fontWeight: 600,
+              minHeight: 44,
+              fontSize: { xs: '0.9375rem', sm: '1rem' },
               transition: 'all 0.3s ease',
+              display: { xs: 'flex', sm: 'inline-flex' },
+              maxWidth: { sm: 'fit-content' },
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: 4,
@@ -434,11 +485,18 @@ export default function DashboardPage() {
               },
             }}
           >
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600, 
+                  mb: { xs: 2, sm: 3 },
+                  fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                }}
+              >
                 New Gym Session
               </Typography>
-              <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                   <TextField
                     type="date"
@@ -451,6 +509,10 @@ export default function DashboardPage() {
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '20px',
+                        minHeight: { xs: 48, sm: 56 },
+                      },
+                      '& .MuiInputBase-input': {
+                        fontSize: { xs: '1rem', sm: '1rem' },
                       },
                     }}
                   />
@@ -462,6 +524,10 @@ export default function DashboardPage() {
                       onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                       sx={{
                         borderRadius: '20px',
+                        minHeight: { xs: 48, sm: 56 },
+                        '& .MuiSelect-select': {
+                          fontSize: { xs: '1rem', sm: '1rem' },
+                        },
                       }}
                     >
                       <MenuItem value="">Select body part...</MenuItem>
@@ -476,18 +542,26 @@ export default function DashboardPage() {
                 {formData.type && (
                   <Paper 
                     sx={{ 
-                      p: 2.5, 
+                      p: { xs: 2, sm: 2.5 }, 
                       bgcolor: 'primary.50',
                       border: 2,
                       borderColor: 'primary.200',
                       borderRadius: '20px',
                     }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 2, color: 'text.primary' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontWeight: 500, 
+                        mb: 2, 
+                        color: 'text.primary',
+                        fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                      }}
+                    >
                       Exercises for this session (everyone does these)
                     </Typography>
                     
-                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mb: 2 }}>
                       <FormControl fullWidth size="small">
                         <Select
                           displayEmpty
@@ -497,7 +571,14 @@ export default function DashboardPage() {
                               e.target.value = ''
                             }
                           }}
-                          sx={{ borderRadius: '20px', bgcolor: 'background.paper' }}
+                          sx={{ 
+                            borderRadius: '20px', 
+                            bgcolor: 'background.paper',
+                            minHeight: { xs: 44, sm: 40 },
+                            '& .MuiSelect-select': {
+                              fontSize: { xs: '0.9375rem', sm: '0.875rem' },
+                            },
+                          }}
                         >
                           <MenuItem value="">+ Add Exercise</MenuItem>
                           {getAvailableExercises(formData.type).map(ex => (
@@ -508,6 +589,7 @@ export default function DashboardPage() {
                       <Button
                         type="button"
                         variant="contained"
+                        fullWidth={true}
                         onClick={() => {
                           const name = prompt('Enter custom exercise name:')
                           if (name && name.trim()) {
@@ -520,7 +602,9 @@ export default function DashboardPage() {
                           textTransform: 'none',
                           fontWeight: 600,
                           px: 3,
+                          minHeight: { xs: 44, sm: 40 },
                           whiteSpace: 'nowrap',
+                          maxWidth: { sm: 'fit-content' },
                         }}
                       >
                         Custom

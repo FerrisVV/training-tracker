@@ -428,92 +428,165 @@ export default function WorkoutsPage() {
         }}
       >
         <Container maxWidth="lg">
-          <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
+          <Toolbar 
+            sx={{ 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              py: { xs: 1.5, sm: 1 },
+              gap: { xs: 1, sm: 0 },
+              minHeight: { xs: 'auto', sm: 64 },
+            }}
+          >
+            <Stack 
+              direction="row" 
+              spacing={{ xs: 1, sm: 2 }} 
+              alignItems="center"
+              sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-start' } }}
+            >
               <Button
                 onClick={() => router.push('/dashboard')}
                 sx={{ 
                   color: 'text.secondary',
                   '&:hover': { color: 'text.primary' },
+                  minWidth: { xs: 'auto', sm: 'auto' },
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
                 }}
               >
-                ← Back to Dashboard
+                <ArrowBackIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
               </Button>
-              <Typography variant="h5" fontWeight="bold" color="text.primary">
+              <Typography 
+                variant="h5" 
+                fontWeight="bold" 
+                color="text.primary"
+                sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+              >
                 Workout Tracker
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack 
+              direction="row" 
+              spacing={{ xs: 1, sm: 2 }} 
+              alignItems="center"
+              sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' } }}
+            >
               <Stack direction="row" spacing={1} alignItems="center">
                 <Avatar 
                   src={isValidImagePath(currentUser.avatar) ? currentUser.avatar : DEFAULT_AVATAR}
                   alt={currentUser.name}
-                  sx={{ width: 32, height: 32 }}
+                  sx={{ width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 } }}
                 />
-                <Typography variant="body2" fontWeight="medium" color="text.primary">
+                <Typography 
+                  variant="body2" 
+                  fontWeight="medium" 
+                  color="text.primary"
+                  sx={{ display: { xs: 'none', sm: 'block' } }}
+                >
                   {currentUser.name}
                 </Typography>
               </Stack>
               <Button
                 onClick={handleLogout}
+                size="small"
                 sx={{ 
                   color: 'text.secondary',
                   '&:hover': { color: 'text.primary' },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minHeight: 36,
                 }}
               >
-                Switch Profile
+                Switch
               </Button>
             </Stack>
           </Toolbar>
         </Container>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 2, sm: 3 } }}>
         {/* Stats Cards */}
         <Box 
           sx={{ 
             display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-            gap: 2,
-            mb: 4,
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: { xs: 1.5, sm: 2 },
+            mb: { xs: 3, sm: 4 },
           }}
         >
           <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+              >
                 Days in Last 30
               </Typography>
-              <Typography variant="h3" fontWeight="bold" color="primary">
+              <Typography 
+                variant="h3" 
+                fontWeight="bold" 
+                color="primary"
+                sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}
+              >
                 {getGymDaysLast30()}
               </Typography>
             </CardContent>
           </Card>
           <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+              >
                 Total Workouts
               </Typography>
-              <Typography variant="h3" fontWeight="bold" color="text.primary">
+              <Typography 
+                variant="h3" 
+                fontWeight="bold" 
+                color="text.primary"
+                sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}
+              >
                 {sessions.filter(s => s.participants?.some((p: any) => p.user_id === currentUser?.id)).length}
               </Typography>
             </CardContent>
           </Card>
           <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+              >
                 Exercises Tracked
               </Typography>
-              <Typography variant="h3" fontWeight="bold" color="text.primary">
+              <Typography 
+                variant="h3" 
+                fontWeight="bold" 
+                color="text.primary"
+                sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}
+              >
                 {allExercises.length}
               </Typography>
             </CardContent>
           </Card>
           <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                gutterBottom
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+              >
                 This Month
               </Typography>
-              <Typography variant="h3" fontWeight="bold" color="text.primary">
+              <Typography 
+                variant="h3" 
+                fontWeight="bold" 
+                color="text.primary"
+                sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}
+              >
                 {sessions.filter(s => {
                   const sessionDate = new Date(s.date)
                   const now = new Date()
