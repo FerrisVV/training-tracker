@@ -372,7 +372,7 @@ export default function WorkoutsPage() {
   const exerciseBalance = getExerciseBalance()
   const achievements = getAchievements()
   const leaderboard = selectedLeaderboardExercise ? getLeaderboard(selectedLeaderboardExercise) : []
-  const comparisonData = comparisonExercise && selectedFriends.length > 0 
+  const comparisonData = comparisonExercise && selectedFriends.length > 0 && currentUser
     ? getComparisonData(comparisonExercise, [...selectedFriends, currentUser.id])
     : {}
   const personalRecords = getPersonalRecords()
