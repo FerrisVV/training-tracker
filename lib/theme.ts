@@ -2,12 +2,15 @@
 
 import { createTheme } from '@mui/material/styles'
 
-// Material Design 3 Theme Configuration
+// Material You (Pixel-style) Theme Configuration
 export const theme = createTheme({
+  shape: {
+    borderRadius: 20, // Pixel roundedness
+  },
   palette: {
     mode: 'light',
     primary: {
-      main: '#6750A4',
+      main: '#6750A4', // Material You purple
       light: '#EADDFF',
       dark: '#21005D',
       contrastText: '#FFFFFF',
@@ -25,19 +28,20 @@ export const theme = createTheme({
       contrastText: '#FFFFFF',
     },
     background: {
-      default: '#FEF7FF',
-      paper: '#FFFBFE',
+      default: '#FFFBFE',
+      paper: '#F7F2FA',
     },
     text: {
       primary: '#1C1B1F',
       secondary: '#49454F',
     },
   },
-  shape: {
-    borderRadius: 12,
-  },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Roboto", "system-ui", sans-serif',
+    button: {
+      textTransform: 'none',
+      fontWeight: 500,
+    },
     h1: {
       fontSize: '3.5rem',
       fontWeight: 700,
@@ -62,17 +66,17 @@ export const theme = createTheme({
       fontSize: '1rem',
       fontWeight: 600,
     },
-    button: {
-      textTransform: 'none',
-      fontWeight: 600,
-    },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 100,
+          borderRadius: 999, // Pill shape
           padding: '10px 24px',
+          transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+          '&:active': {
+            transform: 'scale(0.97)', // Subtle press animation
+          },
         },
         contained: {
           boxShadow: 'none',
@@ -85,8 +89,12 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
+          borderRadius: 20,
+          transition: 'box-shadow 250ms cubic-bezier(0.2, 0, 0, 1)',
           boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+          '&:hover': {
+            boxShadow: '0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.3)',
+          },
         },
       },
     },
@@ -94,6 +102,10 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
+          transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+          '&:active': {
+            transform: 'scale(0.95)',
+          },
         },
       },
     },
@@ -102,6 +114,39 @@ export const theme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 12,
+            transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 20,
+          transition: 'box-shadow 250ms cubic-bezier(0.2, 0, 0, 1)',
+        },
+        elevation1: {
+          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+        },
+        elevation2: {
+          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
+        },
+      },
+    },
+    MuiAvatar: {
+      styleOverrides: {
+        root: {
+          transition: 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 999,
+          transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+          '&:active': {
+            transform: 'scale(0.9)',
           },
         },
       },
