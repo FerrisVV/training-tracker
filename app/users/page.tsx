@@ -6,6 +6,21 @@ import { useLocalStorage } from '@/lib/useLocalStorage'
 import { User } from '@/lib/types'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  CardActionArea,
+  Avatar,
+  TextField,
+  IconButton,
+  CircularProgress,
+  Stack,
+} from '@mui/material'
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
 
 const AVATAR_PLACEHOLDERS = [
   '/avatars/02e5ef8fa00e64c8881597fbf765ca2f.jpg',
@@ -165,176 +180,239 @@ export default function UserSelectionPage() {
 
   if (isRedirecting) {
     return (
-      <div className="min-h-screen bg-md-background flex items-center justify-center">
-        <div className="text-md-on-background text-xl">Loading...</div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'background.default',
+        }}
+      >
+        <CircularProgress />
+      </Box>
     )
   }
 
   return (
-    <div className="min-h-screen bg-md-background flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-md-primary mb-2">Training Tracker</h1>
-          <p className="text-md-on-surface-variant text-lg">Select your profile or create a new one</p>
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        p: 2,
+      }}
+    >
+      <Container maxWidth="md">
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h2" color="primary" gutterBottom>
+            Training Tracker
+          </Typography>
+          <Typography variant="h6" color="text.secondary">
+            Select your profile or create a new one
+          </Typography>
+        </Box>
 
         {!showCreateForm ? (
-          <div className="bg-md-surface rounded-md-xl md-elevation-2 p-8">
-            {users.length > 0 && (
-              <>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-md-on-surface">Select Your Profile</h2>
-                  <button
-                    onClick={() => setEditMode(!editMode)}
-                    className={`px-4 py-2 rounded-md-full text-sm font-medium md-transition md-ripple ${
-                      editMode 
-                        ? 'bg-md-surface-variant text-md-on-surface-variant' 
-                        : 'bg-md-secondary-container text-md-on-primary-container hover:md-elevation-1'
-                    }`}
+          <Card>
+            <CardContent sx={{ p: 4 }}>
+              {users.length > 0 && (
+                <>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h5" fontWeight="bold">
+                      Select Your Profile
+                    </Typography>
+                    <Button
+                      variant={editMode ? 'outlined' : 'contained'}
+                      onClick={() => setEditMode(!editMode)}
+                      size="small"
+                    >
+                      {editMode ? 'Done' : 'Edit Profiles'}
+                    </Button>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
+                      gap: 2,
+                      mb: 3,
+                    }}
                   >
-                    {editMode ? 'Done' : 'Edit Profiles'}
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                  {users.map((user) => (
-                    <div key={user.id} className="relative">
-                      <button
-                        onClick={() => handleSelectUser(user)}
-                        disabled={editMode}
-                        className={`w-full flex flex-col items-center p-6 rounded-md-lg border-2 md-transition md-ripple ${
-                          editMode 
-                            ? 'border-md-outline/30 cursor-default' 
-                            : 'border-md-outline/30 hover:border-md-primary hover:bg-md-primary-container/50 md-elevation-1 hover:md-elevation-2'
-                        }`}
+                    {users.map((user) => (
+                      <Card
+                        key={user.id}
+                        sx={{
+                          position: 'relative',
+                          cursor: editMode ? 'default' : 'pointer',
+                        }}
                       >
-                        <div className="w-20 h-20 mb-3 relative rounded-full overflow-hidden md-elevation-2">
-                          <Image 
-                            src={isValidImagePath(user.avatar) ? user.avatar : DEFAULT_AVATAR} 
-                            alt={user.name}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      </div>
-                      <span className="font-semibold text-md-on-surface">{user.name}</span>
-                    </button>
-                    {editMode && (
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="p-2 bg-md-primary text-md-on-primary rounded-md-full hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
-                          title="Edit profile"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="p-2 bg-md-error text-md-on-error rounded-md-full hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
-                          title="Delete profile"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  ))}
-                </div>
-                <div className="border-t border-md-outline/20 pt-6">
-                  <button
+                          <CardActionArea
+                            onClick={() => !editMode && handleSelectUser(user)}
+                            disabled={editMode}
+                          >
+                            <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                              <Avatar
+                                src={isValidImagePath(user.avatar) ? user.avatar : DEFAULT_AVATAR}
+                                alt={user.name}
+                                sx={{ width: 80, height: 80, mx: 'auto', mb: 2 }}
+                              />
+                              <Typography variant="body1" fontWeight="600">
+                                {user.name}
+                              </Typography>
+                            </CardContent>
+                          </CardActionArea>
+                          {editMode && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                display: 'flex',
+                                gap: 0.5,
+                              }}
+                            >
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => handleEditUser(user)}
+                                sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleDeleteUser(user.id)}
+                                sx={{ bgcolor: 'error.main', color: 'white', '&:hover': { bgcolor: 'error.dark' } }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+                          )}
+                        </Card>
+                    ))}
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
                     onClick={() => setShowCreateForm(true)}
-                    className="w-full py-4 bg-md-primary text-md-on-primary rounded-md-full font-semibold hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
                   >
                     + Create New Profile
-                  </button>
-                </div>
-              </>
-            )}
+                  </Button>
+                </>
+              )}
 
-            {users.length === 0 && (
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-md-on-surface mb-4">Welcome!</h2>
-                <p className="text-md-on-surface-variant mb-6">Let's create your first profile</p>
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="px-8 py-4 bg-md-primary text-md-on-primary rounded-md-full font-semibold hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
-                >
-                  Create Profile
-                </button>
-              </div>
-            )}
-          </div>
+              {users.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 6 }}>
+                  <Typography variant="h5" gutterBottom fontWeight="bold">
+                    Welcome!
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Let's create your first profile
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => setShowCreateForm(true)}
+                  >
+                    Create Profile
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
         ) : (
-          <div className="bg-md-surface rounded-md-xl md-elevation-2 p-8">
-            <h2 className="text-2xl font-bold text-md-on-surface mb-6">{editingUser ? 'Edit Profile' : 'Create Your Profile'}</h2>
-            <form onSubmit={handleCreateUser} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-md-on-surface-variant mb-2">
-                  Your Name
-                </label>
-                <input
-                  type="text"
+          <Card>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
+                {editingUser ? 'Edit Profile' : 'Create Your Profile'}
+              </Typography>
+
+              <Box component="form" onSubmit={handleCreateUser} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
+                  label="Your Name"
                   required
-                  placeholder="Enter your name"
+                  fullWidth
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  className="w-full px-4 py-3 text-md-on-surface bg-md-surface border-2 border-md-outline/40 rounded-md-md focus:outline-none focus:border-md-primary md-transition"
+                  placeholder="Enter your name"
                 />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-md-on-surface-variant mb-3">
-                  Choose Your Avatar
-                </label>
-                <div className="grid grid-cols-5 md:grid-cols-6 gap-2">
-                  {AVATAR_PLACEHOLDERS.map((avatar) => (
-                    <button
-                      key={avatar}
-                      type="button"
-                      onClick={() => setSelectedAvatar(avatar)}
-                      className={`relative w-16 h-16 p-1 rounded-md-md border-2 md-transition overflow-hidden ${
-                        selectedAvatar === avatar
-                          ? 'border-md-primary md-elevation-2 scale-110'
-                          : 'border-md-outline/30 hover:border-md-primary/50'
-                      }`}
-                    >
-                      <Image 
-                        src={avatar} 
-                        alt="Avatar option"
-                        fill
-                        sizes="64px"
-                        className="object-cover rounded-md"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                {users.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => { setShowCreateForm(false); setEditingUser(null); }}
-                    className="flex-1 py-3 border-2 border-md-outline/40 text-md-on-surface rounded-md-full font-semibold hover:bg-md-surface-variant/30 md-transition md-ripple"
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 2 }} color="text.secondary">
+                    Choose Your Avatar
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(5, 1fr)',
+                      gap: 1,
+                    }}
                   >
-                    Cancel
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="flex-1 py-4 bg-md-primary text-md-on-primary rounded-md-full font-semibold hover:md-elevation-2 md-elevation-1 md-transition md-ripple"
-                >
-                  {editingUser ? 'Save Changes' : 'Create Profile'}
-                </button>
-              </div>
-            </form>
-          </div>
+                    {AVATAR_PLACEHOLDERS.map((avatar) => (
+                      <Box
+                        key={avatar}
+                        onClick={() => setSelectedAvatar(avatar)}
+                        sx={{
+                          position: 'relative',
+                          cursor: 'pointer',
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          border: 2,
+                          borderColor: selectedAvatar === avatar ? 'primary.main' : 'transparent',
+                          transform: selectedAvatar === avatar ? 'scale(1.1)' : 'scale(1)',
+                          transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+                          '&:hover': {
+                            borderColor: 'primary.light',
+                          },
+                        }}
+                      >
+                        <Avatar
+                          src={avatar}
+                          alt="Avatar option"
+                          sx={{ width: '100%', height: 'auto', aspectRatio: '1/1' }}
+                          variant="rounded"
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {users.length > 0 && (
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      size="large"
+                      onClick={() => { 
+                        setShowCreateForm(false); 
+                        setEditingUser(null);
+                        setNewUserName('');
+                        setSelectedAvatar(AVATAR_PLACEHOLDERS[0]);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                  >
+                    {editingUser ? 'Save Changes' : 'Create Profile'}
+                  </Button>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         )}
-      </div>
-    </div>
+      </Container>
+    </Box>
   )
 }
