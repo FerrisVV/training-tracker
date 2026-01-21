@@ -6,16 +6,21 @@ import {
   DialogTitle,
   DialogContent,
   Box,
-  Button,
+  TextField,
   Stack,
   Typography,
   IconButton,
   CircularProgress,
   ImageList,
   ImageListItem,
+  Chip,
+  InputAdornment,
 } from '@mui/material'
-import { Close as CloseIcon } from '@mui/icons-material'
-import { searchGifs, REACTION_CATEGORIES, getGifUrl, ReactionGif } from '@/lib/tenor'
+import { 
+  Close as CloseIcon,
+  Search as SearchIcon,
+} from '@mui/icons-material'
+import { searchGifs, getTrendingGifs, SUGGESTED_SEARCHES, getGifUrl, ReactionGif } from '@/lib/tenor'
 
 interface ReactionPickerProps {
   open: boolean
@@ -24,45 +29,55 @@ interface ReactionPickerProps {
 }
 
 export default function ReactionPicker({ open, onClose, onSelectReaction }: ReactionPickerProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const [gifs, setGifs] = useState<ReactionGif[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (selectedCategory) {
-      loadGifs(selectedCategory)
+    if (open && gifs.length === 0) {
+      loadTrendingGifs()
     }
-  }, [selectedCategory])
+  }, [open])
 
-  const loadGifs = async (query: string) => {
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const timeoutId = setTimeout(() => {
+        loadGifs(searchQuery)
+      }, 500) // Debounce search
+      return () => clearTimeout(timeoutId)
+    } else if (open) {
+      loadTrendingGifs()
+    }
+  }, [searchQuery, open])
+
+  const loadTrendingGifs = async () => {
     setLoading(true)
-    const results = await searchGifs(query)
+    const results = await getTrendingGifs(20)
     setGifs(results)
     setLoading(false)
   }
 
-  const handleCategorySelect = (category: typeof REACTION_CATEGORIES[number]) => {
-    setSelectedCategory(category.query)
+  const loadGifs = async (query: string) => {
+    setLoading(true)
+    const results = await searchGifs(query, 20)
+    setGifs(results)
+    setLoading(false)
   }
 
   const handleGifSelect = (gif: ReactionGif) => {
-    const category = REACTION_CATEGORIES.find(c => c.query === selectedCategory)
-    if (category) {
-      const gifUrl = getGifUrl(gif)
-      onSelectReaction(category.label, category.emoji, gifUrl, gif.id)
-      handleClose()
-    }
+    const gifUrl = getGifUrl(gif)
+    onSelectReaction(searchQuery || 'reaction', '🎉', gifUrl, gif.id)
+    handleClose()
   }
 
   const handleClose = () => {
-    setSelectedCategory(null)
+    setSearchQuery('')
     setGifs([])
     onClose()
   }
 
-  const handleBack = () => {
-    setSelectedCategory(null)
-    setGifs([])
+  const handleSuggestedSearch = (term: string) => {
+    setSearchQuery(term)
   }
 
   return (
@@ -84,56 +99,63 @@ export default function ReactionPicker({ open, onClose, onSelectReaction }: Reac
         alignItems: 'center',
         pb: 1,
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {selectedCategory && (
-            <IconButton size="small" onClick={handleBack}>
-              ←
-            </IconButton>
-          )}
-          <Typography variant="h6" fontWeight="bold">
-            {selectedCategory ? 'Choose a GIF' : 'Add Reaction'}
-          </Typography>
-        </Box>
+        <Typography variant="h6" fontWeight="bold">
+          Add Reaction GIF
+        </Typography>
         <IconButton onClick={handleClose} size="small">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ p: 2 }}>
-        {!selectedCategory ? (
-          // Category Selection
-          <Stack spacing={1.5}>
-            {REACTION_CATEGORIES.map((category) => (
-              <Button
-                key={category.label}
-                variant="outlined"
-                onClick={() => handleCategorySelect(category)}
-                sx={{
-                  py: 1.5,
-                  borderRadius: '16px',
-                  justifyContent: 'flex-start',
-                  fontSize: '1rem',
-                  textTransform: 'none',
-                  borderWidth: '2px',
-                  '&:hover': {
-                    borderWidth: '2px',
-                    transform: 'scale(1.02)',
-                  },
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Typography variant="h6" component="span">
-                    {category.emoji}
-                  </Typography>
-                  <Typography variant="body1" fontWeight="500">
-                    {category.label}
-                  </Typography>
-                </Box>
-              </Button>
-            ))}
-          </Stack>
-        ) : loading ? (
+        {/* Search Bar */}
+        <TextField
+          fullWidth
+          placeholder="Search for GIFs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '16px',
+            },
+          }}
+          autoFocus
+        />
+
+        {/* Suggested Searches */}
+        {!searchQuery && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+              Suggested:
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+              {SUGGESTED_SEARCHES.map((term) => (
+                <Chip
+                  key={term}
+                  label={term}
+                  onClick={() => handleSuggestedSearch(term)}
+                  size="small"
+                  sx={{
+                    borderRadius: '12px',
+                    '&:hover': {
+                      bgcolor: 'primary.light',
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
+        )}
+
+        {loading ? (
           // Loading State
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
             <CircularProgress />
@@ -171,9 +193,9 @@ export default function ReactionPicker({ open, onClose, onSelectReaction }: Reac
                 </ImageListItem>
               ))}
             </ImageList>
-            {gifs.length === 0 && (
+            {gifs.length === 0 && !loading && (
               <Typography color="text.secondary" textAlign="center" py={4}>
-                No GIFs found. Try another category.
+                {searchQuery ? 'No GIFs found. Try another search.' : 'Start typing to search for GIFs'}
               </Typography>
             )}
           </Box>
