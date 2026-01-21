@@ -15,7 +15,7 @@ import {
   ImageListItem,
 } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
-import { searchGifs, REACTION_CATEGORIES, getGifUrl, TenorGif } from '@/lib/tenor'
+import { searchGifs, REACTION_CATEGORIES, getGifUrl, ReactionGif } from '@/lib/tenor'
 
 interface ReactionPickerProps {
   open: boolean
@@ -25,7 +25,7 @@ interface ReactionPickerProps {
 
 export default function ReactionPicker({ open, onClose, onSelectReaction }: ReactionPickerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [gifs, setGifs] = useState<TenorGif[]>([])
+  const [gifs, setGifs] = useState<ReactionGif[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function ReactionPicker({ open, onClose, onSelectReaction }: Reac
 
   const loadGifs = async (query: string) => {
     setLoading(true)
-    const results = await searchGifs(query, 12)
+    const results = await searchGifs(query)
     setGifs(results)
     setLoading(false)
   }
@@ -45,10 +45,10 @@ export default function ReactionPicker({ open, onClose, onSelectReaction }: Reac
     setSelectedCategory(category.query)
   }
 
-  const handleGifSelect = (gif: TenorGif) => {
+  const handleGifSelect = (gif: ReactionGif) => {
     const category = REACTION_CATEGORIES.find(c => c.query === selectedCategory)
     if (category) {
-      const gifUrl = getGifUrl(gif, 'medium')
+      const gifUrl = getGifUrl(gif)
       onSelectReaction(category.label, category.emoji, gifUrl, gif.id)
       handleClose()
     }
@@ -158,8 +158,8 @@ export default function ReactionPicker({ open, onClose, onSelectReaction }: Reac
                   onClick={() => handleGifSelect(gif)}
                 >
                   <img
-                    src={getGifUrl(gif, 'small')}
-                    alt={gif.content_description}
+                    src={getGifUrl(gif)}
+                    alt={gif.title}
                     loading="lazy"
                     style={{
                       width: '100%',
