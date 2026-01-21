@@ -78,6 +78,58 @@ export default function WorkoutsPage() {
       return
     }
     fetchSessions()
+
+    // Real-time subscriptions
+    const timeoutId = setTimeout(() => {
+      const sessionsChannel = supabase
+        .channel('workout_sessions_' + syncCode, {
+          config: {
+            broadcast: { self: true },
+          },
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'shared_sessions',
+          filter: `sync_code=eq.${syncCode}`
+        }, () => {
+          fetchSessions()
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Real-time sync enabled for sessions')
+          }
+        })
+
+      const reactionsChannel = supabase
+        .channel('workout_reactions_' + syncCode, {
+          config: {
+            broadcast: { self: true },
+          },
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'session_reactions',
+          filter: `sync_code=eq.${syncCode}`
+        }, () => {
+          fetchSessions()
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Real-time sync enabled for reactions')
+          }
+        })
+      
+      return () => { 
+        supabase.removeChannel(sessionsChannel).catch(() => {})
+        supabase.removeChannel(reactionsChannel).catch(() => {})
+      }
+    }, 500)
+    
+    return () => {
+      clearTimeout(timeoutId)
+    }
   }, [currentUser, router, mounted])
 
   const fetchSessions = async () => {

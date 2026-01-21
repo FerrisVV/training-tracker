@@ -118,7 +118,7 @@ export default function DashboardPage() {
       
       // Add small delay to prevent WebSocket connection race conditions
       const timeoutId = setTimeout(() => {
-        const channel = supabase
+        const sessionsChannel = supabase
           .channel('sessions_' + syncCode, {
             config: {
               broadcast: { self: true },
@@ -134,15 +134,36 @@ export default function DashboardPage() {
           })
           .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-              console.log('Real-time sync enabled')
+              console.log('Real-time sync enabled for sessions')
             } else if (status === 'CHANNEL_ERROR') {
               console.log('Real-time sync unavailable - using manual refresh')
             }
           })
+
+        const reactionsChannel = supabase
+          .channel('reactions_' + syncCode, {
+            config: {
+              broadcast: { self: true },
+            },
+          })
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'session_reactions',
+            filter: `sync_code=eq.${syncCode}`
+          }, () => {
+            fetchSessions()
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Real-time sync enabled for reactions')
+            }
+          })
         
-        // Store channel for cleanup
+        // Store channels for cleanup
         return () => { 
-          supabase.removeChannel(channel).catch(() => {})
+          supabase.removeChannel(sessionsChannel).catch(() => {})
+          supabase.removeChannel(reactionsChannel).catch(() => {})
         }
       }, 500)
       
