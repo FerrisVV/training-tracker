@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 import { supabase } from '@/lib/supabase'
-import { User, Session, ParticipantData, Exercise, ExerciseSet } from '@/lib/types'
+import { User, Session, ParticipantData, Exercise, ExerciseSet, Reaction } from '@/lib/types'
 import {
   Box,
   Container,
@@ -25,13 +25,16 @@ import {
   Chip,
   Stack,
   Paper,
+  Tooltip,
 } from '@mui/material'
 import {
   Add as AddIcon,
   FitnessCenter as FitnessIcon,
   BarChart as BarChartIcon,
   Delete as DeleteIcon,
+  AddReaction as AddReactionIcon,
 } from '@mui/icons-material'
+import ReactionPicker from '@/components/ReactionPicker'
 
 const BODY_PARTS = [
   'Chest',
@@ -70,6 +73,8 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useLocalStorage<User | null>('current_user', null)
   const [users, setUsers] = useLocalStorage<User[]>('users', [])
   const [sessions, setSessions] = useState<Session[]>([])
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false)
+  const [selectedSessionForReaction, setSelectedSessionForReaction] = useState<string | null>(null)
   
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
@@ -148,12 +153,29 @@ export default function DashboardPage() {
   }, [syncCode, currentUser])
 
   const fetchSessions = async () => {
-    const { data } = await supabase
+    // Fetch sessions
+    const { data: sessionsData } = await supabase
       .from('shared_sessions')
       .select('*')
       .eq('sync_code', syncCode)
       .order('date', { ascending: false })
-    if (data) setSessions(data)
+    
+    if (sessionsData) {
+      // Fetch reactions for all sessions
+      const { data: reactionsData } = await supabase
+        .from('session_reactions')
+        .select('*')
+        .eq('sync_code', syncCode)
+        .order('created_at', { ascending: true })
+      
+      // Merge reactions into sessions
+      const sessionsWithReactions = sessionsData.map(session => ({
+        ...session,
+        reactions: reactionsData?.filter(r => r.session_id === session.id) || []
+      }))
+      
+      setSessions(sessionsWithReactions)
+    }
   }
 
   const fetchUsers = async () => {
@@ -228,6 +250,50 @@ export default function DashboardPage() {
   const handleLogout = () => {
     localStorage.removeItem('current_user')
     window.location.href = '/users'
+  }
+
+  const handleAddReaction = (sessionId: string) => {
+    setSelectedSessionForReaction(sessionId)
+    setReactionPickerOpen(true)
+  }
+
+  const handleReactionSelect = async (category: string, emoji: string, gifUrl: string, gifId: string) => {
+    if (!currentUser || !selectedSessionForReaction) return
+
+    const newReaction: Omit<Reaction, 'id' | 'created_at'> = {
+      session_id: selectedSessionForReaction,
+      user_id: currentUser.id,
+      user_name: currentUser.name,
+      user_avatar: currentUser.avatar,
+      category,
+      emoji,
+      gif_url: gifUrl,
+      gif_id: gifId,
+    }
+
+    // Add to Supabase
+    const { data, error } = await supabase
+      .from('session_reactions')
+      .insert([{ ...newReaction, sync_code: syncCode }])
+      .select()
+      .single()
+
+    if (!error && data) {
+      // Update local state
+      setSessions(prevSessions => 
+        prevSessions.map(session => {
+          if (session.id === selectedSessionForReaction) {
+            return {
+              ...session,
+              reactions: [...(session.reactions || []), data as Reaction]
+            }
+          }
+          return session
+        })
+      )
+    }
+
+    setSelectedSessionForReaction(null)
   }
 
   const addParticipant = () => {
@@ -921,19 +987,34 @@ export default function DashboardPage() {
                         </Stack>
                       </Stack>
                     </Box>
-                    {session.created_by === currentUser?.id && (
-                      <Button
-                        onClick={() => deleteSession(session.id)}
-                        startIcon={<DeleteIcon />}
-                        sx={{
-                          color: 'error.main',
-                          textTransform: 'none',
-                          '&:hover': { color: 'error.dark' },
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    )}
+                    <Stack direction="row" spacing={1}>
+                      <Tooltip title="Add Reaction">
+                        <IconButton 
+                          onClick={() => handleAddReaction(session.id)}
+                          sx={{
+                            color: 'primary.main',
+                            '&:hover': {
+                              bgcolor: 'primary.light',
+                            },
+                          }}
+                        >
+                          <AddReactionIcon />
+                        </IconButton>
+                      </Tooltip>
+                      {session.created_by === currentUser?.id && (
+                        <Button
+                          onClick={() => deleteSession(session.id)}
+                          startIcon={<DeleteIcon />}
+                          sx={{
+                            color: 'error.main',
+                            textTransform: 'none',
+                            '&:hover': { color: 'error.dark' },
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </Stack>
                   </Stack>
 
                   <Stack spacing={2}>
@@ -1002,12 +1083,86 @@ export default function DashboardPage() {
                       </Box>
                     ))}
                   </Stack>
+
+                  {/* Reactions */}
+                  {session.reactions && session.reactions.length > 0 && (
+                    <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 500 }}>
+                        Reactions
+                      </Typography>
+                      <Box sx={{ 
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                        gap: 2,
+                      }}>
+                        {session.reactions.map((reaction) => (
+                          <Box
+                            key={reaction.id}
+                            sx={{
+                              position: 'relative',
+                              borderRadius: '16px',
+                              overflow: 'hidden',
+                              height: 150,
+                              border: '2px solid',
+                              borderColor: 'divider',
+                            }}
+                          >
+                            <Box
+                              component="img"
+                              src={reaction.gif_url}
+                              alt={reaction.category}
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                              }}
+                            />
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                backdropFilter: 'blur(4px)',
+                                p: 1,
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Avatar 
+                                  src={isValidImagePath(reaction.user_avatar) ? reaction.user_avatar : DEFAULT_AVATAR}
+                                  alt={reaction.user_name}
+                                  sx={{ width: 24, height: 24 }}
+                                />
+                                <Typography variant="caption" color="white" fontWeight="500">
+                                  {reaction.user_name}
+                                </Typography>
+                                <Typography variant="caption" color="white">
+                                  {reaction.emoji} {reaction.category}
+                                </Typography>
+                              </Stack>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
             ))
           )}
         </Stack>
       </Container>
+
+      {/* Reaction Picker Dialog */}
+      <ReactionPicker
+        open={reactionPickerOpen}
+        onClose={() => {
+          setReactionPickerOpen(false)
+          setSelectedSessionForReaction(null)
+        }}
+        onSelectReaction={handleReactionSelect}
+      />
     </Box>
   )
 }
