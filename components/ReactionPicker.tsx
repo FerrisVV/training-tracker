@@ -86,10 +86,18 @@ export default function ReactionPicker({ open, onClose, onSelectReaction }: Reac
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
+      disableScrollLock
       PaperProps={{
         sx: {
           borderRadius: '20px',
           maxHeight: '80vh',
+        }
+      }}
+      slotProps={{
+        backdrop: {
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }
         }
       }}
     >
