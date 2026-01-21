@@ -24,6 +24,19 @@ export type ParticipantData = {
   notes?: string
 }
 
+export type Reaction = {
+  id: string
+  session_id: string
+  user_id: string
+  user_name: string
+  user_avatar: string
+  category: string
+  emoji: string
+  gif_url: string
+  gif_id: string
+  created_at: string
+}
+
 export type Session = {
   id: string
   sync_code: string
@@ -33,5 +46,6 @@ export type Session = {
   date: string
   type: string
   participants: ParticipantData[]
+  reactions?: Reaction[]
   created_at: string
 }

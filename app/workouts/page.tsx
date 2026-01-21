@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 import { supabase } from '@/lib/supabase'
-import { User, Session, ExerciseSet } from '@/lib/types'
+import { User, Session, ExerciseSet, Reaction } from '@/lib/types'
 import {
   Box,
   Container,
@@ -23,8 +23,14 @@ import {
   Chip,
   Stack,
   Paper,
+  Tooltip,
+  IconButton,
 } from '@mui/material'
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material'
+import { 
+  ArrowBack as ArrowBackIcon,
+  AddReaction as AddReactionIcon,
+} from '@mui/icons-material'
+import ReactionPicker from '@/components/ReactionPicker'
 
 // Helper function to check if avatar is a valid image path
 const isValidImagePath = (src: string): boolean => {
@@ -58,6 +64,8 @@ export default function WorkoutsPage() {
   const [selectedLeaderboardExercise, setSelectedLeaderboardExercise] = useState<string>('')
   const [comparisonExercise, setComparisonExercise] = useState<string>('')
   const [selectedFriends, setSelectedFriends] = useState<string[]>([])
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false)
+  const [selectedSessionForReaction, setSelectedSessionForReaction] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -73,12 +81,29 @@ export default function WorkoutsPage() {
   }, [currentUser, router, mounted])
 
   const fetchSessions = async () => {
-    const { data } = await supabase
+    // Fetch sessions
+    const { data: sessionsData } = await supabase
       .from('shared_sessions')
       .select('*')
       .eq('sync_code', syncCode)
       .order('date', { ascending: false })
-    if (data) setSessions(data)
+    
+    if (sessionsData) {
+      // Fetch reactions for all sessions
+      const { data: reactionsData } = await supabase
+        .from('session_reactions')
+        .select('*')
+        .eq('sync_code', syncCode)
+        .order('created_at', { ascending: true })
+      
+      // Merge reactions into sessions
+      const sessionsWithReactions = sessionsData.map(session => ({
+        ...session,
+        reactions: reactionsData?.filter(r => r.session_id === session.id) || []
+      }))
+      
+      setSessions(sessionsWithReactions)
+    }
   }
 
   // Calculate gym days in last 30 days
@@ -162,6 +187,50 @@ export default function WorkoutsPage() {
   const handleLogout = () => {
     localStorage.removeItem('current_user')
     window.location.href = '/users'
+  }
+
+  const handleAddReaction = (sessionId: string) => {
+    setSelectedSessionForReaction(sessionId)
+    setReactionPickerOpen(true)
+  }
+
+  const handleReactionSelect = async (category: string, emoji: string, gifUrl: string, gifId: string) => {
+    if (!currentUser || !selectedSessionForReaction) return
+
+    const newReaction: Omit<Reaction, 'id' | 'created_at'> = {
+      session_id: selectedSessionForReaction,
+      user_id: currentUser.id,
+      user_name: currentUser.name,
+      user_avatar: currentUser.avatar,
+      category,
+      emoji,
+      gif_url: gifUrl,
+      gif_id: gifId,
+    }
+
+    // Add to Supabase
+    const { data, error } = await supabase
+      .from('session_reactions')
+      .insert([{ ...newReaction, sync_code: syncCode }])
+      .select()
+      .single()
+
+    if (!error && data) {
+      // Update local state
+      setSessions(prevSessions => 
+        prevSessions.map(session => {
+          if (session.id === selectedSessionForReaction) {
+            return {
+              ...session,
+              reactions: [...(session.reactions || []), data as Reaction]
+            }
+          }
+          return session
+        })
+      )
+    }
+
+    setSelectedSessionForReaction(null)
   }
 
   // Body Part Heat Map - Get trained body parts this week
@@ -1554,7 +1623,171 @@ export default function WorkoutsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Recent Sessions with Reactions */}
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 3 }}>
+              💬 Recent Sessions
+            </Typography>
+            {sessions.length === 0 ? (
+              <Typography color="text.secondary" textAlign="center" py={4}>
+                No sessions yet
+              </Typography>
+            ) : (
+              <Stack spacing={3}>
+                {sessions.slice(0, 5).map((session) => (
+                  <Paper
+                    key={session.id}
+                    elevation={0}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: '20px',
+                      p: { xs: 2, sm: 3 },
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        boxShadow: 2,
+                      },
+                    }}
+                  >
+                    {/* Session Header */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                      <Box>
+                        <Typography variant="h6" fontWeight="600" sx={{ mb: 0.5 }}>
+                          {session.type}
+                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                          <Typography variant="body2" color="text.secondary">
+                            {new Date(session.date).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">•</Typography>
+                          <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Avatar 
+                              src={isValidImagePath(session.creator_avatar) ? session.creator_avatar : DEFAULT_AVATAR}
+                              alt={session.creator_name}
+                              sx={{ width: 20, height: 20 }}
+                            />
+                            <Typography variant="body2" fontWeight="500">
+                              {session.creator_name}
+                            </Typography>
+                          </Stack>
+                        </Stack>
+                      </Box>
+                      <Tooltip title="Add Reaction">
+                        <IconButton 
+                          onClick={() => handleAddReaction(session.id)}
+                          sx={{
+                            color: 'primary.main',
+                            '&:hover': {
+                              bgcolor: 'primary.light',
+                            },
+                          }}
+                        >
+                          <AddReactionIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+
+                    {/* Participants Summary */}
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Participants: {session.participants?.length || 0}
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                        {session.participants?.map((p: any, idx: number) => (
+                          <Chip
+                            key={idx}
+                            avatar={<Avatar src={isValidImagePath(p.user_avatar) ? p.user_avatar : DEFAULT_AVATAR} alt={p.user_name} />}
+                            label={p.user_name}
+                            size="small"
+                            sx={{ borderRadius: '12px' }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+
+                    {/* Reactions */}
+                    {session.reactions && session.reactions.length > 0 && (
+                      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                          Reactions
+                        </Typography>
+                        <Box sx={{ 
+                          display: 'grid',
+                          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                          gap: 2,
+                        }}>
+                          {session.reactions.map((reaction) => (
+                            <Box
+                              key={reaction.id}
+                              sx={{
+                                position: 'relative',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                height: 150,
+                                border: '2px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              <Box
+                                component="img"
+                                src={reaction.gif_url}
+                                alt={reaction.category}
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                }}
+                              />
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                  backdropFilter: 'blur(4px)',
+                                  p: 1,
+                                }}
+                              >
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Avatar 
+                                    src={isValidImagePath(reaction.user_avatar) ? reaction.user_avatar : DEFAULT_AVATAR}
+                                    alt={reaction.user_name}
+                                    sx={{ width: 24, height: 24 }}
+                                  />
+                                  <Typography variant="caption" color="white" fontWeight="500">
+                                    {reaction.user_name}
+                                  </Typography>
+                                  <Typography variant="caption" color="white">
+                                    {reaction.emoji} {reaction.category}
+                                  </Typography>
+                                </Stack>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+          </CardContent>
+        </Card>
       </Container>
+
+      {/* Reaction Picker Dialog */}
+      <ReactionPicker
+        open={reactionPickerOpen}
+        onClose={() => {
+          setReactionPickerOpen(false)
+          setSelectedSessionForReaction(null)
+        }}
+        onSelectReaction={handleReactionSelect}
+      />
     </Box>
   )
 }
